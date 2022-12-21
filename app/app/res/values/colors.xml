@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1da1f2</color>
+    <color name="colorPrimaryDark">#1da1f2</color>
+    <color name="colorAccent">#03DAC5</color>
+
+    <color name="background_color">#efefef</color>
+    <color name="dark_blue">#4C36BC</color>
+
+    <color name="disbaled_color">#494949</color>
+
+    <color name="background_alt">#3c7dbc</color>
+    <color name="background_alt_dark">#285b8c</color>
+
+    <color name="resistance_color">#E6A680</color>
+    <color name="piece_color">#fafbfb</color>
+
+    <color name="support_color">#52C499</color>
+    <color name="red">#FF675B</color>
+
+    <color name="blue_item">#3C7DBC</color>
+
+</resources>
