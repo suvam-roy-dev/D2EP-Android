@@ -7,22 +7,82 @@
     android:background="@color/background_color"
     tools:context=".ui.calender.CalenderFragment">
 
+    <TextView
+        android:id="@+id/textView25"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_status_bg"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="Not Started (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/textView26"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2" />
+
+    <TextView
+        android:id="@+id/textView26"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:background="@drawable/rounded_status_bg"
+        android:backgroundTint="@color/status_yellow"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="In Progress (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/textView27"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView25"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2" />
+
+    <TextView
+        android:id="@+id/textView27"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:background="@drawable/rounded_status_bg"
+        android:backgroundTint="@color/status_completed"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="Completed (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView26"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout2"
         android:layout_width="0dp"
         android:layout_height="100dp"
-        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/bDateGallery">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCalenderN2"
             android:layout_width="0dp"
-            android:layout_height="80dp"
+            android:layout_height="64dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="8dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/bNextDates"
@@ -79,10 +139,10 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCalenderN1"
             android:layout_width="0dp"
-            android:layout_height="80dp"
+            android:layout_height="64dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/cvCalenderN2"
@@ -139,11 +199,11 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCalenderCurrent"
             android:layout_width="0dp"
-            android:layout_height="80dp"
+            android:layout_height="64dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             app:cardBackgroundColor="@color/colorPrimary"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/cvCalenderN1"
@@ -200,10 +260,10 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCalenderP1"
             android:layout_width="0dp"
-            android:layout_height="80dp"
+            android:layout_height="64dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/cvCalenderCurrent"
@@ -290,10 +350,10 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCalenderP2"
             android:layout_width="0dp"
-            android:layout_height="80dp"
+            android:layout_height="64dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="4dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/cvCalenderP1"
@@ -352,15 +412,13 @@
         android:id="@+id/rvVisitsCalender"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2" />
+        app:layout_constraintTop_toBottomOf="@+id/textView26" />
 
     <ProgressBar
         android:id="@+id/progressBar6"
@@ -387,4 +445,54 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/constraintLayout2"
         app:layout_constraintVertical_bias="0.45" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/rounded_button_bg"
+        android:backgroundTint="#E1E8ED "
+        app:layout_constraintEnd_toStartOf="@+id/bDateGallery"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tabBackground="@drawable/visit_tab_indicator"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="#00FFFFFF"
+        app:tabIndicatorFullWidth="false"
+        app:tabMaxWidth="500dp"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="@android:color/white">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Month" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <Button
+        android:id="@+id/bDateGallery"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/calender_bg"
+        android:drawableRight="@drawable/calendar"
+        android:drawableTint="@color/text_color_dark"
+        android:paddingEnd="8dp"
+        android:text="Button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tabLayout2"
+        app:layout_constraintTop_toTopOf="@+id/tabLayout2" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

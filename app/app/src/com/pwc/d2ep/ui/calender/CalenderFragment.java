@@ -1,5 +1,6 @@
 package com.pwc.d2ep.ui.calender;
 
+import android.app.DatePickerDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,14 +24,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.google.android.material.tabs.TabLayout;
+import com.pwc.d2ep.HostActivity;
 import com.pwc.d2ep.R;
+import com.pwc.d2ep.TinyDB;
 import com.pwc.d2ep.Visit;
 import com.pwc.d2ep.VisitGalleryAdapter;
 import com.pwc.d2ep.databinding.FragmentSlideshowBinding;
 import com.pwc.d2ep.db.AppDatabase;
+import com.pwc.d2ep.db.TaskDB;
+import com.pwc.d2ep.db.TaskDao;
 import com.pwc.d2ep.db.VisitDB;
 import com.pwc.d2ep.db.VisitDao;
+import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.ApiVersionStrings;
+import com.salesforce.androidsdk.rest.ClientManager;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.salesforce.androidsdk.rest.RestRequest;
 import com.salesforce.androidsdk.rest.RestResponse;
@@ -42,7 +51,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+
 
 public class CalenderFragment extends Fragment implements View.OnClickListener {
 
@@ -58,9 +70,18 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     private Date currentDate, n1Date, n2Date, p1Date, p2Date;
     private Date currentMonth, n1Month, p1Month;
     private VisitDao visitDao;
+    private TaskDao taskDao;
+    TinyDB tinyDB;
+    private Button bDate;
+    Calendar calendar;
+    int notStarted = 0;
+    int inProgress = 0;
+    int completed = 0;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        tinyDB = new TinyDB(getContext());
         selectedVisits = new ArrayList<>();
         totalVisits = new ArrayList<>();
 
@@ -68,6 +89,7 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
                 AppDatabase.class, "d2ep_db").build();
 
         visitDao = db.visitDao();
+        taskDao = db.taskDao();
 
         AsyncTask.execute(new Runnable() {
             @Override
@@ -113,11 +135,14 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
             VisitDB[] visits = visitDao.loadAllVisits();
             //Log.d("DBROOM", "populateView: "+visits.length);
             //int highVisits = 0, missedVisits = 0;
+
             for (VisitDB v : visits) {
-                Visit visit = new Visit(v.distributorName, v.time, v.time, v.visitId, v.status, "Visit");
+
+                Visit visit = new Visit(v.distributorName, v.distributorAddress, v.time, v.time, v.visitId, v.status,v.priority, "Visit",taskDao.loadVisitTasks(v.visitId).length);
                 totalVisits.add(visit);
                 //Log.d("DBROOM", "New Visit: "+visit.getName() +" Synced: "+v.isSynced);
             }
+
 
 
             getActivity().runOnUiThread(new Runnable() {
@@ -137,10 +162,234 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     public void onResume() {
         super.onResume();
 
+        //connectSF();
+    }
+
+    private void connectSF(){
+        String accountType =
+                SalesforceSDKManager.getInstance().getAccountType();
+
+        ClientManager.LoginOptions loginOptions =
+                SalesforceSDKManager.getInstance().getLoginOptions();
+        //loginOptions.setLoginUrl("http://google.com");
+
+
+// Get a rest client
+        new ClientManager(getActivity(), accountType, loginOptions,
+                false).
+                getRestClient(getActivity(), new ClientManager.RestClientCallback() {
+                    @Override
+                    public void
+                    authenticatedRestClient(RestClient client) {
+
+                        if (client.getJSONCredentials() == null) {
+                            SalesforceSDKManager.getInstance().
+                                    logout(getActivity());
+                            return;
+                        }
+
+                        if (!SalesforceSDKManager.getInstance().hasNetwork()){
+                            ((HostActivity)getActivity()).updateStatusBarColor("#ff675b");
+                            tinyDB.putBoolean("Online", false);
+
+                        }else {
+                            ((HostActivity)getActivity()).updateStatusBarColor("#1da1f2");
+                            tinyDB.putBoolean("Online", true);
+                        }
+                        // Cache the returned client\
+                        client1 = client;
+                        AsyncTask.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (taskDao.loadUnsynced().length != 0) {
+                                    try {
+                                        syncTasks();
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+
+                    }
+                });
+    }
+
+    private void syncTasks() throws UnsupportedEncodingException {
+        TaskDB[] tasks = taskDao.loadUnsynced();
+        for (TaskDB vTemp: tasks) {
+            updateTable(vTemp);
+        }
+
+        VisitDB[] visits = visitDao.loadUnsynced();
+
+        for(VisitDB visitDB : visits){
+            updateVisit(visitDB);
+        }
+    }
+
+    private void updateVisit(VisitDB visitDB) throws UnsupportedEncodingException {
+        String soql= "";
+        //soql = "UPDATE Task SET status = 'Completed', Description = '"+comments+"' WHERE Id = '"+taskId+"' and WhatId = '"+visitId+"'";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("Status__c",visitDB.status);
+        RestRequest restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(getContext()), "Visit__c",visitDB.visitId,map);
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        //listAdapter.clear();
+                        Log.d("2512 Visit", "Result :" + result.toString());
+                        //Toast.makeText(getActivity(),"Task Updated Successfully!",Toast.LENGTH_SHORT).show();
+
+                        AsyncTask.execute(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                visitDB.isSynced = true;
+                                int rows = visitDao.updateVisits(visitDB);
+//                                    if (rows > 0){
+//                                        Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show();
+//                                    }
+
+//                                fetchVisits();
+//                                fetchTasks();
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        onError(e);
+                        Log.e("2512", "Error: " + e.toString());
+
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+//                runOnUiThread(() -> Toast.makeText(TaskDetailsActivity.this,
+//                        getString(R.string.sf__generic_error, exception.toString()),
+//                        Toast.LENGTH_LONG).show());
+//
+//                AsyncTask.execute(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        TaskDB taskDB = new TaskDB();
+//                        taskDB.taskId = taskId;
+//                        taskDB.visitId = visitId;
+//                        taskDB.description = comments;
+//                        taskDB.status = completed ? "Completed" : "Not Started";
+//                        taskDB.isSynced = false;
+//                        taskDB.subject = task.subject;
+//                        taskDB.date = task.date;
+//                        taskDB.priority = task.priority;
+//                        int rows = taskDao.updateTasks(taskDB);
+////                                    if (rows > 0){
+////                                        Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show();
+////                                    }
+//                        db.close();
+//                        finish();
+//                    }
+//                });
+//                fetchVisits();
+//                fetchTasks();
+
+            }
+        });
+    }
+
+    private void updateTable(TaskDB task) throws UnsupportedEncodingException {
+        String soql= "";
+        //soql = "UPDATE Task SET status = 'Completed', Description = '"+comments+"' WHERE Id = '"+taskId+"' and WhatId = '"+visitId+"'";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("status",task.status);
+        map.put("Description", task.description);
+        RestRequest restRequest = RestRequest.getRequestForUpdate(ApiVersionStrings.getVersionNumber(getContext()), "Task",task.taskId,map);
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        //listAdapter.clear();
+                        Log.d("2512 Visit", "Result :" + result.toString());
+                        //Toast.makeText(getActivity(),"Task Updated Successfully!",Toast.LENGTH_SHORT).show();
+
+                        AsyncTask.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                TaskDB taskDB = new TaskDB();
+                                taskDB.taskId = task.taskId;
+                                taskDB.visitId = task.visitId;
+                                taskDB.description = task.description;
+                                taskDB.status = task.description;
+                                taskDB.isSynced = true;
+                                taskDB.subject = task.subject;
+                                taskDB.date = task.date;
+                                taskDB.priority = task.priority;
+                                int rows = taskDao.updateTasks(taskDB);
+//                                    if (rows > 0){
+//                                        Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show();
+//                                    }
+
+
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        onError(e);
+                        Log.e("2512", "Error: " + e.toString());
+
+
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+//                runOnUiThread(() -> Toast.makeText(TaskDetailsActivity.this,
+//                        getString(R.string.sf__generic_error, exception.toString()),
+//                        Toast.LENGTH_LONG).show());
+//
+//                AsyncTask.execute(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        TaskDB taskDB = new TaskDB();
+//                        taskDB.taskId = taskId;
+//                        taskDB.visitId = visitId;
+//                        taskDB.description = comments;
+//                        taskDB.status = completed ? "Completed" : "Not Started";
+//                        taskDB.isSynced = false;
+//                        taskDB.subject = task.subject;
+//                        taskDB.date = task.date;
+//                        taskDB.priority = task.priority;
+//                        int rows = taskDao.updateTasks(taskDB);
+////                                    if (rows > 0){
+////                                        Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show();
+////                                    }
+//                        db.close();
+//                        finish();
+//                    }
+//                });
+//                fetchVisits();
+//                fetchTasks();
+
+            }
+        });
     }
 
 
     private void getVisitsByDate(Date date) throws ParseException {
+
+        notStarted = 0;
+        inProgress = 0;
+        completed = 0;
 
         getView().findViewById(R.id.textView8).setVisibility(View.INVISIBLE);
         selectedVisits.clear();
@@ -159,8 +408,37 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
                 selectedVisits.add(v);
             }
         }
+
+        for (Visit v: selectedVisits) {
+            switch (v.getPriority()){
+                case "New":
+                    notStarted += 1;
+                    break;
+                case "InProgress":
+                    inProgress += 1;
+                    break;
+                case "Completed":
+                    completed += 1;
+                    break;
+            }
+
+            int finalNotStarted = notStarted;
+            int finalInProgress = inProgress;
+            int finalCompleted = completed;
+            requireActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView)requireView().findViewById(R.id.textView25)).setText("Not Started("+ finalNotStarted +")");
+                    ((TextView)requireView().findViewById(R.id.textView26)).setText("In Progress("+ finalInProgress +")");
+
+                    ((TextView)requireView().findViewById(R.id.textView27)).setText("Completed("+ finalCompleted +")");
+
+                }
+            });
+        }
         Log.d("2512", "Selected Visits: "+ selectedVisits.size());
         VisitGalleryAdapter adapter = new VisitGalleryAdapter(selectedVisits,getContext());
+        adapter.setHasStableIds(true);
         rvVisits.setHasFixedSize(true);
         rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
         rvVisits.setAdapter(adapter);
@@ -174,8 +452,14 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     }
 
     private void getVisitsByMonth(Date date) throws ParseException {
+
+        notStarted = 0;
+        inProgress = 0;
+        completed = 0;
+
         getView().findViewById(R.id.textView8).setVisibility(View.INVISIBLE);
         selectedVisits.clear();
+
         Calendar selectedDate = Calendar.getInstance();
         selectedDate.setTime(date);
 
@@ -191,8 +475,37 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
                 selectedVisits.add(v);
             }
         }
+
+        for (Visit v: selectedVisits) {
+            switch (v.getPriority()){
+                case "New":
+                    notStarted += 1;
+                    break;
+                case "InProgress":
+                    inProgress += 1;
+                    break;
+                case "Completed":
+                    completed += 1;
+                    break;
+            }
+
+            int finalNotStarted = notStarted;
+            int finalInProgress = inProgress;
+            int finalCompleted = completed;
+            requireActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView)requireView().findViewById(R.id.textView25)).setText("Not Started("+ finalNotStarted +")");
+                    ((TextView)requireView().findViewById(R.id.textView26)).setText("In Progress("+ finalInProgress +")");
+
+                    ((TextView)requireView().findViewById(R.id.textView27)).setText("Completed("+ finalCompleted +")");
+
+                }
+            });
+        }
         Log.d("2512", "Selected Visits: "+ selectedVisits.size());
         VisitGalleryAdapter adapter = new VisitGalleryAdapter(selectedVisits,getContext());
+        adapter.setHasStableIds(true);
         rvVisits.setHasFixedSize(true);
         rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
         rvVisits.setAdapter(adapter);
@@ -207,7 +520,7 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
     }
 
     @Override
@@ -269,54 +582,54 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
         return super.onOptionsItemSelected(item);
     }
 
-    private void sendRequest(String soql) throws UnsupportedEncodingException {
-        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
-
-        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
-            @Override
-            public void onSuccess(RestRequest request, final RestResponse result) {
-                result.consumeQuietly(); // consume before going back to main thread
-                requireActivity().runOnUiThread(() -> {
-                    try {
-                        //listAdapter.clear();
-                        Log.d("2512", "Result :" + result.toString());
-                        JSONArray records = result.asJSONObject().getJSONArray("records");
-//                            for (int i = 0; i < records.length(); i++) {
-//                                listAdapter.add(records.getJSONObject(i).getString("Name"));
+//    private void sendRequest(String soql) throws UnsupportedEncodingException {
+//        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+//
+//        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+//            @Override
+//            public void onSuccess(RestRequest request, final RestResponse result) {
+//                result.consumeQuietly(); // consume before going back to main thread
+//                requireActivity().runOnUiThread(() -> {
+//                    try {
+//                        //listAdapter.clear();
+//                        Log.d("2512", "Result :" + result.toString());
+//                        JSONArray records = result.asJSONObject().getJSONArray("records");
+////                            for (int i = 0; i < records.length(); i++) {
+////                                listAdapter.add(records.getJSONObject(i).getString("Name"));
+////                            }
+//                        totalVisits = new ArrayList<>();
+//
+//                        for (int i = 0; i < records.length(); i++) {
+//                            if (records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") {
+//                                String name = (records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name"));
+//                                String time = records.getJSONObject(i).getString("VisitStartTime__c");
+//                                String prio = records.getJSONObject(i).getString("Status__c");
+//                                time = time.replace("T", ", ").substring(0, time.length() - 8);
+//                                String id = records.getJSONObject(i).getString("Id");
+//                                String date = time.split(",")[0];
+//                                Visit vTemp = new Visit(name, time, date, id,prio, "Visit");
+//
+//                                totalVisits.add(vTemp);
 //                            }
-                        totalVisits = new ArrayList<>();
-
-                        for (int i = 0; i < records.length(); i++) {
-                            if (records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") {
-                                String name = (records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name"));
-                                String time = records.getJSONObject(i).getString("VisitStartTime__c");
-                                String prio = records.getJSONObject(i).getString("Status__c");
-                                time = time.replace("T", ", ").substring(0, time.length() - 8);
-                                String id = records.getJSONObject(i).getString("Id");
-                                String date = time.split(",")[0];
-                                Visit vTemp = new Visit(name, time, date, id,prio, "Visit");
-
-                                totalVisits.add(vTemp);
-                            }
-
-                        }
-
-                        getVisitsByDate(new Date());
-                    } catch (Exception e) {
-                        onError(e);
-                        Log.e("2512", "Login Error: "+e.toString());
-                    }
-                });
-            }
-
-            @Override
-            public void onError(final Exception exception) {
-                requireActivity().runOnUiThread(() -> Toast.makeText(getContext(),
-                        getActivity().getString(R.string.sf__generic_error, exception.toString()),
-                        Toast.LENGTH_LONG).show());
-            }
-        });
-    }
+//
+//                        }
+//
+//                        getVisitsByDate(new Date());
+//                    } catch (Exception e) {
+//                        onError(e);
+//                        Log.e("2512", "Login Error: "+e.toString());
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onError(final Exception exception) {
+//                requireActivity().runOnUiThread(() -> Toast.makeText(getContext(),
+//                        getActivity().getString(R.string.sf__generic_error, exception.toString()),
+//                        Toast.LENGTH_LONG).show());
+//            }
+//        });
+//    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -358,6 +671,59 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
         tvP2Primary = root.findViewById(R.id.tvCalenderP2Primary);
         tvP2Secondary = root.findViewById(R.id.tvCalenderP2Secondary);
 
+        ((TabLayout)root.findViewById(R.id.tabLayout2)).addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getText().toString()){
+                    case "Date":
+                        isDate = true;
+                        isMonth = false;
+                        cvN2.setVisibility(View.VISIBLE);
+                        cvP2.setVisibility(View.VISIBLE);
+                        setDates();
+                        if(isMonth){
+                            setTextColors(19,getView());
+                        }
+                        isDate = true;
+                        isMonth = false;
+                        try {
+                            getVisitsByDate(currentDate);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    break;
+
+                    case "Month":
+                        isDate = false;
+                        isMonth = true;
+                        cvN2.setVisibility(View.GONE);
+                        cvP2.setVisibility(View.GONE);
+                        if(isDate){
+                            setTextColors(19,getView());
+                        }
+                        isDate = false;
+                        isMonth = true;
+                        setMonths();
+                        try {
+                            getVisitsByMonth(new Date());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        bDate = root.findViewById(R.id.bDateGallery);
         root.findViewById(R.id.bNextDates).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -371,8 +737,99 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
                 setPreviousDates();
             }
         });
+
+
+        int year, month, day;
+        calendar = Calendar.getInstance();
+        year = calendar.get(Calendar.YEAR);
+
+        month = calendar.get(Calendar.MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        ((Button)root.findViewById(R.id.bDateGallery)).setText(day+"/"+month+"/"+year);
+
+        root.findViewById(R.id.bDateGallery).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                new DatePickerDialog(getContext(),
+                        myDateListener, year, month, day).show();
+                //createDialogWithoutDateField().show();
+
+            }
+        });
+
         setDates();
         return root;
+    }
+
+    void showmonthPicker(){
+
+    }
+
+    DatePickerDialog createDialogWithoutDateField() {
+        DatePickerDialog dpd = new DatePickerDialog(getContext(), myDateListener, Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DATE));
+        try {
+            java.lang.reflect.Field[] datePickerDialogFields = dpd.getClass().getDeclaredFields();
+            for (java.lang.reflect.Field datePickerDialogField : datePickerDialogFields) {
+                if (datePickerDialogField.getName().equals("mDatePicker")) {
+                    datePickerDialogField.setAccessible(true);
+                    DatePicker datePicker = (DatePicker) datePickerDialogField.get(dpd);
+                    java.lang.reflect.Field[] datePickerFields = datePickerDialogField.getType().getDeclaredFields();
+                    for (java.lang.reflect.Field datePickerField : datePickerFields) {
+                        Log.i("test", datePickerField.getName());
+                        if ("mDaySpinner".equals(datePickerField.getName())) {
+                            datePickerField.setAccessible(true);
+                            Object dayPicker = datePickerField.get(datePicker);
+                            ((View) dayPicker).setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+        }
+        return dpd;
+    }
+
+    private DatePickerDialog.OnDateSetListener myDateListener = new
+            DatePickerDialog.OnDateSetListener() {
+
+                @Override
+                public void onDateSet(DatePicker arg0,
+                                      int arg1, int arg2, int arg3) {
+                    // TODO Auto-generated method stub
+                    // arg1 = year
+                    // arg2 = month
+                    // arg3 = day
+                    showDate(arg1, arg2+1, arg3);
+                    calendar.set(arg1,arg2,arg3);
+                    setTextColors(0,cvCurrent);
+                    if (isDate) {
+                        setDates();
+                        try {
+                            calendar.add(Calendar.DATE,2);
+                            getVisitsByDate(calendar.getTime());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if(isMonth){
+                        setMonths();
+                        try {
+                            calendar.add(Calendar.MONTH,1);
+                            getVisitsByMonth(calendar.getTime());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+
+    private void showDate(int year, int month, int day) {
+        bDate.setText(new StringBuilder().append(day).append("/")
+                .append(month).append("/").append(year));
     }
 
     @Override
@@ -521,7 +978,7 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
 
     void setDates(){
 
-        Calendar calendar = Calendar.getInstance();
+        //Calendar calendar = Calendar.getInstance();
         currentDate = calendar.getTime();
 
         calendar.add(Calendar.DAY_OF_YEAR, 1);
@@ -549,12 +1006,15 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
 
         tvP2Primary.setText(new SimpleDateFormat("dd", Locale.getDefault()).format(p2Date));
         tvP2Secondary.setText(new SimpleDateFormat("MMM", Locale.getDefault()).format(p2Date));
+
     }
 
     private void setNextDates(){
         setTextColors(19,getView());
         if(isDate){
-            Calendar c = Calendar.getInstance();
+            //Calendar c = Calendar.getInstance();
+
+            Calendar c = calendar;
             c.setTime(currentDate);
             c.add(Calendar.DATE,5);
             currentDate = c.getTime();
@@ -593,7 +1053,9 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
 
 
         if(isMonth){
-            Calendar c = Calendar.getInstance();
+//            Calendar c = Calendar.getInstance();
+
+            Calendar c = calendar;
             c.setTime(currentMonth);
             c.add(Calendar.MONTH,3);
             currentMonth = c.getTime();
@@ -622,7 +1084,9 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
 
     void setMonths(){
 
-        Calendar calendar = Calendar.getInstance();
+//        Calendar calendar = Calendar.getInstance();
+
+        Calendar c = calendar;
         currentMonth = calendar.getTime();
 
         calendar.add(Calendar.MONTH, 1);
@@ -645,7 +1109,9 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     private void setPreviousDates(){
         setTextColors(19,getView());
         if(isDate){
-            Calendar c = Calendar.getInstance();
+//            Calendar c = Calendar.getInstance();
+
+            Calendar c = calendar;
             c.setTime(currentDate);
             c.add(Calendar.DATE,-5);
             currentDate = c.getTime();
@@ -684,7 +1150,9 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
 
 
         if(isMonth){
-            Calendar c = Calendar.getInstance();
+//            Calendar c = Calendar.getInstance();
+
+            Calendar c = calendar;
             c.setTime(currentMonth);
             c.add(Calendar.MONTH,-3);
             currentMonth = c.getTime();

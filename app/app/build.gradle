@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
 dependencies {
   implementation project(':libs:MobileSync')
@@ -16,12 +17,18 @@ dependencies {
   implementation 'androidx.navigation:navigation-ui:2.5.3'
   implementation 'com.google.code.gson:gson:2.8.8'
 
+  implementation 'com.google.firebase:firebase-crashlytics'
+  implementation 'com.google.firebase:firebase-analytics'
+  implementation 'com.google.firebase:firebase-firestore'
+
   def room_version = "2.4.3"
 
   implementation "androidx.room:room-runtime:$room_version"
   annotationProcessor "androidx.room:room-compiler:$room_version"
   implementation 'com.squareup.picasso:picasso:2.8'
-}
+
+  implementation("com.squareup.okhttp3:okhttp:4.10.0")
+  }
 
 android {
   compileSdkVersion 32

@@ -16,5 +16,9 @@
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/calendar"
             android:title="@string/menu_slideshow" />
+        <item
+            android:id="@+id/nav_salesorder"
+            android:icon="@drawable/increasing"
+            android:title="Sales Orders" />
     </group>
 </menu>

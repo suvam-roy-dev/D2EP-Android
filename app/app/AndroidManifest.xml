@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.pwc.d2ep"
     android:installLocation="internalOnly"
-    android:versionCode="1"
-    android:versionName="1.0"> 
+    android:versionCode="6"
+    android:versionName="3.0.1">
     <!--
         GCM permission to ensure that only this application can
         receive the messages and registration result. This must be of
@@ -15,6 +15,7 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="com.pwc.d2ep.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 
     <application
         android:name=".MainApplication"
@@ -22,6 +23,27 @@
         android:label="@string/app_name"
         android:manageSpaceActivity="com.salesforce.androidsdk.ui.ManageSpaceActivity"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".CartActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".SalesOrderDetails"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".NewOrderActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -31,6 +53,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
@@ -79,8 +102,6 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true">
-
-
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

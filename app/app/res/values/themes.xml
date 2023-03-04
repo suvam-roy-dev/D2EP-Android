@@ -27,6 +27,7 @@
         <item name="itemTextColor">?attr/colorNavigationItem</item>
         <item name="itemBackground">?attr/drawableNavigationItemBackground</item>
     </style>
+
     <style name="Theme.AppCompat.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -44,7 +45,16 @@
     <style name="ActionButton" parent="@android:style/Widget.ActionButton">
         <item name="android:drawablePadding">8dp</item>
     </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="PoppinsTextViewStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <style name="tab_text" parent="@android:style/TextAppearance.Widget.TabWidget">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
 </resources>

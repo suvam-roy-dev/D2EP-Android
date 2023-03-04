@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +21,7 @@ public class VisitGalleryAdapter extends RecyclerView.Adapter<VisitGalleryAdapte
     private static ArrayList<Visit> visits;
     private static Context c;
     // RecyclerView recyclerView;
+
     public VisitGalleryAdapter(ArrayList<Visit> listdata, Context context) {
         this.visits = listdata;
         this.c = context;
@@ -46,17 +48,29 @@ public class VisitGalleryAdapter extends RecyclerView.Adapter<VisitGalleryAdapte
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         try {
             Date strDate = sdf.parse(split[0]);
-            holder.tvDate.setText("Date: "+new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+"     Time:"+split[1]);
-
+            holder.tvDate.setText(new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+" | "+split[1]);
+            if(new Date().after(strDate) && !visits.get(position).getPriority().equals("Completed")){
+                holder.ivMissed.setVisibility(View.VISIBLE);
+            }
         } catch (ParseException e) {
             e.printStackTrace();
-            holder.tvDate.setText("Date: "+split[0]+"     Time:"+split[1]);
+            holder.tvDate.setText(split[0]+" | "+split[1]);
 
         }
 
 
+//        Date strDate = null;
+//        try {
+//            strDate = sdf.parse(visits.get(position).getDate());
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
-
+        holder.tvAddress.setText(visits.get(position).getAddress());
+        if (visits.get(position).getStatus().equals("High")){
+            holder.ivHigh.setVisibility(View.VISIBLE);
+        }
 //        if (visits.get(position).getPriority().equals("New")){
 //            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.red,null));
 //        }
@@ -65,8 +79,12 @@ public class VisitGalleryAdapter extends RecyclerView.Adapter<VisitGalleryAdapte
             holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_blue_dark,null));
         }
 
+        if (visits.get(position).getPriority().equals("InProgress")){
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_yellow,null));
+        }
+
         if (visits.get(position).getPriority().equals("Completed")){
-            holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_green_dark,null));
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_completed,null));
         }
     }
 
@@ -77,15 +95,19 @@ public class VisitGalleryAdapter extends RecyclerView.Adapter<VisitGalleryAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvName;
+        public TextView tvName, tvAddress;
         public TextView tvDate;
         public View vPriority;
+        ImageView ivHigh, ivMissed;
         public ViewHolder(View itemView) {
             super(itemView);
 
             this.tvName = (TextView) itemView.findViewById(R.id.tvNameVisitItem);
             this.tvDate = (TextView) itemView.findViewById(R.id.tvDateVisitItem);
             this.vPriority = itemView.findViewById(R.id.vPriorityVisitItem);
+            this.tvAddress = (TextView) itemView.findViewById(R.id.tvAddressVisitItem);
+            this.ivHigh = itemView.findViewById(R.id.imageView3);
+            this.ivMissed = itemView.findViewById(R.id.imageView5);
 
             itemView.findViewById(R.id.cvVisitItem).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -107,5 +129,15 @@ public class VisitGalleryAdapter extends RecyclerView.Adapter<VisitGalleryAdapte
                 }
             });
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
     }
 }

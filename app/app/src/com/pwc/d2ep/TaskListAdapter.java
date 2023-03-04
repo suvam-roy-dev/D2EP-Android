@@ -5,9 +5,12 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.w3c.dom.Text;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -48,17 +51,22 @@ public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.ViewHo
 
         }
 
+        holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_blue_dark,null));
 
         if (visits.get(position).getPriority().equals("High")){
-            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.red,null));
+            holder.ivHigh.setVisibility(View.VISIBLE);
+        }
+
+        if (visits.get(position).getPriority().equals("WaitingOnSomeoneElse")){
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_yellow,null));
         }
 
         if (visits.get(position).getPriority().equals("Not Started")){
-            holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_blue_dark,null));
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.colorPrimary,null));
         }
 
         if (visits.get(position).getPriority().equals("Completed")){
-            holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_green_dark,null));
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_completed,null));
         }
     }
 
@@ -72,12 +80,17 @@ public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.ViewHo
         public TextView tvName;
         public TextView tvDate;
         public View vPriority;
+        public TextView tvAdd;
+        ImageView ivHigh;
         public ViewHolder(View itemView) {
             super(itemView);
 
             this.tvName = (TextView) itemView.findViewById(R.id.tvNameVisitItem);
             this.tvDate = (TextView) itemView.findViewById(R.id.tvDateVisitItem);
             this.vPriority = itemView.findViewById(R.id.vPriorityVisitItem);
+            this.tvAdd = itemView.findViewById(R.id.tvAddressVisitItem);
+            this.ivHigh = itemView.findViewById(R.id.imageView3);
+            tvAdd.setVisibility(View.GONE);
 
             itemView.findViewById(R.id.cvVisitItem).setOnClickListener(new View.OnClickListener() {
                 @Override

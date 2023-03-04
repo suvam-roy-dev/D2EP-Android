@@ -27,6 +27,13 @@
 package com.pwc.d2ep;
 
 import android.app.Application;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.salesforce.androidsdk.mobilesync.app.MobileSyncSDKManager;
 
@@ -34,6 +41,32 @@ import com.salesforce.androidsdk.mobilesync.app.MobileSyncSDKManager;
  * Application class for our application.
  */
 public class MainApplication extends Application {
+
+	NetworkRequest networkRequest = new NetworkRequest.Builder()
+			.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+			.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+			.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+			.build();
+
+	private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+		@Override
+		public void onAvailable(@NonNull Network network) {
+			super.onAvailable(network);
+			Toast.makeText(getApplicationContext(),"Connected!", Toast.LENGTH_SHORT).show();
+		}
+
+		@Override
+		public void onLost(@NonNull Network network) {
+			super.onLost(network);
+			Toast.makeText(getApplicationContext(),"Lost!", Toast.LENGTH_SHORT).show();
+		}
+
+		@Override
+		public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
+			super.onCapabilitiesChanged(network, networkCapabilities);
+			final boolean unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
+		}
+	};
 
 	@Override
 	public void onCreate() {
@@ -54,5 +87,13 @@ public class MainApplication extends Application {
 		 * for the key 'androidPushNotificationClientId'.
 		 */
 		// MobileSyncSDKManager.getInstance().setPushNotificationReceiver(pnInterface);
+
+		//monitorNetwork();
+	}
+
+	private void monitorNetwork() {
+		ConnectivityManager connectivityManager =
+				(ConnectivityManager) getSystemService(ConnectivityManager.class);
+		connectivityManager.requestNetwork(networkRequest, networkCallback);
 	}
 }

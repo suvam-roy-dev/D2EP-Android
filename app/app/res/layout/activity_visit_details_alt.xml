@@ -16,7 +16,8 @@
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible" />
+        android:visibility="visible"
+        tools:visibility="gone" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cvInfoVisitDetails"

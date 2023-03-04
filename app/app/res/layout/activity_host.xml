@@ -16,25 +16,64 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
+        style="@style/Widget.Custom.NavigationView"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_host"
+        app:itemIconTint="@color/colorPrimary"
+        app:itemTextColor="@color/text_color_dark"
         app:menu="@menu/activity_main_drawer"
-        style="@style/Widget.Custom.NavigationView">
+        app:itemTextAppearance="@style/PoppinsTextViewStyle">
 
-        <Button
-            android:id="@+id/bLogOut"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cvLogout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:background="@color/colorPrimary"
-            android:fontFamily="@font/poppins_medium"
-            android:text="Log Out"
-            android:textAllCaps="false"
-            android:textColor="#ffffff"
-            android:textSize="18sp" />
+            android:layout_gravity="bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                app:srcCompat="@drawable/icon_logout" />
+
+            <TextView
+                android:id="@+id/textView23"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Logout"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/imageView4"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/bLogOut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center|start"
+                android:background="@android:color/transparent"
+                android:drawableLeft="@drawable/icon_logout"
+                android:drawablePadding="8dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:text="Log Out"
+                android:textAlignment="textStart"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="18sp"
+                android:visibility="gone"
+                tools:layout_editor_absoluteY="679dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </com.google.android.material.navigation.NavigationView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

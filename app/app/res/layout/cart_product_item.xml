@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="4dp"
+    android:clipToPadding="false"
+    android:visibility="visible"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="8dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvProductNameProductTab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="TextView"
+            android:textColor="@color/colorPrimary"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/button12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:fontFamily="@font/poppins_medium"
+            android:paddingTop="2dp"
+            android:paddingEnd="8dp"
+            android:text="Remove"
+            android:textAllCaps="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/view4"
+            app:layout_constraintHorizontal_bias="0.6"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/button13"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:fontFamily="@font/poppins_medium"
+            android:paddingTop="2dp"
+            android:paddingEnd="24dp"
+            android:text="Edit"
+            android:textAllCaps="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/imageView7" />
+
+        <ImageButton
+            android:id="@+id/imageButton4"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            app:layout_constraintBottom_toBottomOf="@+id/tvQty"
+            app:layout_constraintStart_toStartOf="@+id/tvProductNameProductTab"
+            app:layout_constraintTop_toTopOf="@+id/tvQty"
+            app:srcCompat="@drawable/minus" />
+
+        <TextView
+            android:id="@+id/tvQty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/poppins_medium"
+            android:paddingTop="2dp"
+            android:text="1"
+            android:textColor="@color/text_color_dark"
+            app:layout_constraintStart_toEndOf="@+id/imageButton4"
+            app:layout_constraintTop_toBottomOf="@+id/tvProductNameProductTab" />
+
+        <ImageButton
+            android:id="@+id/imageButton5"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            app:layout_constraintBottom_toBottomOf="@+id/tvQty"
+            app:layout_constraintStart_toEndOf="@+id/tvQty"
+            app:layout_constraintTop_toTopOf="@+id/tvQty"
+            app:srcCompat="@drawable/add" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:orientation="horizontal"
+            android:weightSum="1"
+            app:layout_constraintBottom_toBottomOf="@+id/tvQty"
+            app:layout_constraintStart_toEndOf="@+id/imageButton5"
+            app:layout_constraintTop_toTopOf="@+id/tvQty">
+
+            <TextView
+                android:id="@+id/textView49"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_left_text_bg"
+                android:backgroundTint="@color/tab_background"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"
+                android:paddingTop="2dp"
+                android:text="UOM"
+                android:textColor="@color/text_color_dark"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvUOM"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_right_text_bg"
+                android:backgroundTint="#657786"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:text="Units"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/view4"
+            android:layout_width="1dp"
+            android:layout_height="24dp"
+            android:background="#A1AAAAAA"
+            app:layout_constraintBottom_toBottomOf="@+id/button12"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/button12" />
+
+        <TextView
+            android:id="@+id/textView57"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Sales Price"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/textView58"
+            app:layout_constraintStart_toStartOf="@+id/imageButton4"
+            app:layout_constraintTop_toBottomOf="@+id/tvQty" />
+
+        <TextView
+            android:id="@+id/textView58"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Charges"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/textView59"
+            app:layout_constraintStart_toStartOf="@+id/textView57"
+            app:layout_constraintTop_toBottomOf="@+id/textView57" />
+
+        <TextView
+            android:id="@+id/textView59"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Discount"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/view8"
+            app:layout_constraintStart_toStartOf="@+id/textView58"
+            app:layout_constraintTop_toBottomOf="@+id/textView58" />
+
+        <View
+            android:id="@+id/view7"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            app:layout_constraintBottom_toTopOf="@+id/button12"
+            app:layout_constraintEnd_toStartOf="@+id/view4"
+            app:layout_constraintHorizontal_bias="0.4"
+            app:layout_constraintStart_toStartOf="@+id/textView57" />
+
+        <TextView
+            android:id="@+id/textView60"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
+            android:text=":"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/textView57"
+            app:layout_constraintStart_toEndOf="@+id/view7"
+            app:layout_constraintTop_toTopOf="@+id/textView57" />
+
+        <TextView
+            android:id="@+id/textView61"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
+            android:text=":"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/textView58"
+            app:layout_constraintStart_toEndOf="@+id/view7"
+            app:layout_constraintTop_toTopOf="@+id/textView58" />
+
+        <TextView
+            android:id="@+id/textView62"
+            android:layout_width="0dp"
+            android:layout_height="22dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text=":"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/textView59"
+            app:layout_constraintStart_toEndOf="@+id/view7"
+            app:layout_constraintTop_toTopOf="@+id/textView59" />
+
+        <TextView
+            android:id="@+id/tvSalesPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="end"
+            android:text="$1,300,000.00"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/view4"
+            app:layout_constraintStart_toEndOf="@+id/textView60"
+            app:layout_constraintTop_toTopOf="@+id/textView57" />
+
+        <TextView
+            android:id="@+id/tvCharges"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="end"
+            android:text="0.0"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/view4"
+            app:layout_constraintStart_toEndOf="@+id/textView61"
+            app:layout_constraintTop_toTopOf="@+id/textView58" />
+
+        <TextView
+            android:id="@+id/tvDiscount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="end"
+            android:text="0.0"
+            android:textColor="@color/text_color_dark"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/view4"
+            app:layout_constraintStart_toEndOf="@+id/textView62"
+            app:layout_constraintTop_toTopOf="@+id/textView59" />
+
+        <View
+            android:id="@+id/view8"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginEnd="16dp"
+            android:background="#A1AAAAAA"
+            app:layout_constraintBottom_toTopOf="@+id/button12"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/textView59" />
+
+        <TextView
+            android:id="@+id/textView66"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Total"
+            android:textColor="@color/text_color_dark"
+            app:layout_constraintBottom_toTopOf="@+id/tvTotalCost"
+            app:layout_constraintEnd_toEndOf="@+id/tvTotalCost"
+            app:layout_constraintStart_toStartOf="@+id/tvTotalCost"
+            app:layout_constraintTop_toTopOf="@+id/tvSalesPrice"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tvTotalCost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="$1,625,000.00"
+            android:textColor="@color/text_color_dark"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/button13"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/view4"
+            app:layout_constraintTop_toBottomOf="@+id/textView66" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/button13"
+            app:layout_constraintEnd_toStartOf="@+id/button13"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/view4"
+            app:layout_constraintTop_toTopOf="@+id/button13"
+            app:srcCompat="@drawable/pencil"
+            app:tint="#FFC107" />
+
+        <ImageView
+            android:id="@+id/imageView8"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:layout_constraintBottom_toBottomOf="@+id/button12"
+            app:layout_constraintEnd_toStartOf="@+id/button12"
+            app:layout_constraintTop_toTopOf="@+id/button12"
+            app:srcCompat="@drawable/delete" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

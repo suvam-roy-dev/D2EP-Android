@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frameLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.SaleOrderFragment">
+
+    <TextView
+        android:id="@+id/textView39"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_status_bg"
+        android:backgroundTint="@color/status_red"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="Cancelled (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/imageButton3"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView38"
+        app:layout_constraintTop_toTopOf="@+id/textView38" />
+
+    <ProgressBar
+        android:id="@+id/progressBar7"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <ImageButton
+        android:id="@+id/imageButton3"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/dots"
+        app:layout_constraintBottom_toBottomOf="@+id/textView38"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textView38" />
+
+    <TextView
+        android:id="@+id/textView35"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/rounded_status_bg"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="Draft (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/textView37"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/horizontalScrollView"
+        app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView" />
+
+    <TextView
+        android:id="@+id/textView37"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_status_bg"
+        android:backgroundTint="@color/status_yellow"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="In Progress (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/textView38"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView35"
+        app:layout_constraintTop_toTopOf="@+id/textView35" />
+
+    <TextView
+        android:id="@+id/textView38"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_status_bg"
+        android:backgroundTint="@color/status_completed"
+        android:fontFamily="@font/poppins_medium"
+        android:padding="4dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="Completed (0)"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/textView39"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView37"
+        app:layout_constraintTop_toTopOf="@+id/textView37" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:clipToPadding="true"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tabBackground="@drawable/order_tab_indicator"
+        app:tabGravity="start"
+        app:tabIndicatorColor="#00FFFFFF"
+        app:tabMaxWidth="200dp"
+        app:tabMinWidth="20dp"
+        app:tabMode="scrollable"
+        app:tabPaddingEnd="16dp"
+        app:tabPaddingStart="16dp"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabTextAppearance="@style/TextAppearance.AppCompat.Small"
+        app:tabTextColor="@color/text_color_dark">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Requisition" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Orders"
+            tools:layout_editor_absoluteX="155dp"
+            tools:layout_editor_absoluteY="55dp" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Allocation" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSalesOrders"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView38"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <HorizontalScrollView
+        android:id="@+id/horizontalScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scrollbarThumbHorizontal="@android:color/transparent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:visibility="visible">
+
+            <Button
+                android:id="@+id/button8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_rect_tab_inactive_bg"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="Requisition"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/button7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_status_bg"
+                android:elevation="20dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowColor="@color/text_color_dark"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="5"
+                android:text="Orders"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/button6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_rect_tab_inactive_bg"
+                android:elevation="20dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="Allocations"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_rect_tab_inactive_bg"
+                android:elevation="20dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="Invoices"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/button5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_rect_tab_inactive_bg"
+                android:elevation="20dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="Dispatches"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_rect_tab_inactive_bg"
+                android:elevation="20dp"
+                android:fontFamily="@font/poppins_medium"
+                android:padding="8dp"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:text="Returns"
+                android:textAllCaps="false"
+                android:textColor="@color/text_color_dark"
+                android:textSize="16sp"
+                android:visibility="visible" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/button9"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/rounded_button_bg"
+        android:drawableLeft="@drawable/sf__add"
+        android:drawableTint="@android:color/white"
+        android:elevation="12dp"
+        android:fontFamily="@font/poppins_medium"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:shadowColor="@color/text_color_dark"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="5"
+        android:text="New"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

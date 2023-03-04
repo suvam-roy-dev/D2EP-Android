@@ -1,36 +1,44 @@
 package com.pwc.d2ep.ui.home;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.pwc.d2ep.BuildConfig;
 import com.pwc.d2ep.HostActivity;
 import com.pwc.d2ep.R;
-import com.pwc.d2ep.TaskDetailsActivity;
 import com.pwc.d2ep.TinyDB;
 import com.pwc.d2ep.Visit;
 import com.pwc.d2ep.VisitDashboardAdapter;
 import com.pwc.d2ep.databinding.FragmentHomeBinding;
-
 import com.pwc.d2ep.db.AppDatabase;
 import com.pwc.d2ep.db.TaskDB;
 import com.pwc.d2ep.db.TaskDao;
@@ -46,7 +54,9 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -56,8 +66,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class DashbaordFragment extends Fragment {
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
+public class DashbaordFragment extends Fragment {
     private FragmentHomeBinding binding;
     private RestClient client1;
     private TextView tvHighPrioNumber;
@@ -75,6 +88,8 @@ public class DashbaordFragment extends Fragment {
     TinyDB tinyDB;
     VisitDao visitDao;
     TaskDao taskDao;
+    private String ownerId;
+    private String dealerID;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -83,6 +98,70 @@ public class DashbaordFragment extends Fragment {
         highPriorityVisits = new ArrayList<>();
 
         Log.d("2512", "onCreate:");
+        setHasOptionsMenu(true);
+        //checkForUpdate();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.dashboard,menu);
+    }
+
+    private void checkForUpdate() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        double currentVersion = Double.parseDouble(BuildConfig.VERSION_NAME);
+        db.collection("Versions")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                double ver = document.getDouble("version");
+
+                                if (currentVersion < ver){
+                                    //Toast.makeText(getContext(),"Please update the app!", Toast.LENGTH_SHORT).show();
+                                    showUpdateDialog(document.getString("url"));
+                                }
+                            }
+                        } else {
+                            Log.w("Firestore", "Error getting documents.", task.getException());
+                        }
+                    }
+                });
+    }
+
+    private void showUpdateDialog(String url) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+        // Set the message show for the Alert time
+        builder.setMessage("A new update is available.");
+
+        // Set Alert Title
+        builder.setTitle("Update!");
+
+        // Set Cancelable false for when the user clicks on the outside the Dialog Box then it will remain show
+        builder.setCancelable(false);
+
+        // Set the positive button with yes name Lambda OnClickListener method is use of DialogInterface interface.
+        builder.setPositiveButton("Update", (DialogInterface.OnClickListener) (dialog, which) -> {
+            // When the user click yes button then app will close
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+        });
+
+        // Set the Negative button with No name Lambda OnClickListener method is use of DialogInterface interface.
+        builder.setNegativeButton("Dismiss", (DialogInterface.OnClickListener) (dialog, which) -> {
+            // If user click no then dialog box is canceled.
+            dialog.cancel();
+        });
+
+        // Create the Alert dialog
+        AlertDialog alertDialog = builder.create();
+        // Show the Alert Dialog box
+        alertDialog.show();
     }
 
     private void connectDB() throws UnsupportedEncodingException {
@@ -162,32 +241,6 @@ public class DashbaordFragment extends Fragment {
 
             @Override
             public void onError(final Exception exception) {
-//                runOnUiThread(() -> Toast.makeText(TaskDetailsActivity.this,
-//                        getString(R.string.sf__generic_error, exception.toString()),
-//                        Toast.LENGTH_LONG).show());
-//
-//                AsyncTask.execute(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        TaskDB taskDB = new TaskDB();
-//                        taskDB.taskId = taskId;
-//                        taskDB.visitId = visitId;
-//                        taskDB.description = comments;
-//                        taskDB.status = completed ? "Completed" : "Not Started";
-//                        taskDB.isSynced = false;
-//                        taskDB.subject = task.subject;
-//                        taskDB.date = task.date;
-//                        taskDB.priority = task.priority;
-//                        int rows = taskDao.updateTasks(taskDB);
-////                                    if (rows > 0){
-////                                        Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show();
-////                                    }
-//                        db.close();
-//                        finish();
-//                    }
-//                });
-//                fetchVisits();
-//                fetchTasks();
 
             }
         });
@@ -275,10 +328,10 @@ public class DashbaordFragment extends Fragment {
         });
     }
 
-    private void fetchTasks() {
+    private void fetchTasks() throws NullPointerException{
         ArrayList<TaskDB> fetchedTasks = new ArrayList<>();
         try {
-            String ownerId = client1.getJSONCredentials().getString("userId");
+            ownerId = client1.getJSONCredentials().getString("userId");
             //sendHighRequest("SELECT Name,Priority__c,DistributorToVisit__r.Name,ID,Status__c,RetailerToVisit__c,VisitStartTime__c FROM Visit__c where OwnerId='"+ownerId+"' and Priority__c='High' ORDER BY VisitStartTime__c ASC");
             //sendMissedRequest("SELECT Name,Priority__c,DistributorToVisit__r.Name,ID,Status__c,RetailerToVisit__c,VisitStartTime__c FROM Visit__c where OwnerId='"+ownerId+"' and Status__C='Missed' ORDER BY VisitStartTime__c DESC");
             //sendTotalRequest("SELECT Name,ID,Status__c,Priority__c,DistributorToVisit__c, DistributorToVisit__r.Name,VisitStartTime__c,VisitEndTime__c, DistributorToVisit__r.BillingStreet, RetailerToVisit__c,RetailerToVisit__r.Name, RetailerToVisit__r.MailingStreet, BeatPlanning__c,BeatPlanning__r.Name, BeatPlanning__r.BeatTasks__c, BeatLocation__c, BeatLocation__r.Name, Owner.Name from Visit__c where OwnerId='"+ownerId+"' ORDER BY VisitStartTime__c DESC");
@@ -340,7 +393,7 @@ public class DashbaordFragment extends Fragment {
 
                 @Override
                 public void onError(final Exception exception) {
-                    getActivity().runOnUiThread(new Runnable() {
+                    requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
 //                            Toast.makeText(getContext(),
@@ -379,7 +432,7 @@ public class DashbaordFragment extends Fragment {
             }
         }
         //Log.d("DBROOM", "Added Records: "+visits.length);
-        populateView();
+        //populateView();
     }
 
     private void addTasksToDB(ArrayList<TaskDB> taskDBS){
@@ -396,6 +449,7 @@ public class DashbaordFragment extends Fragment {
             }
         }
         //Log.d("DBROOM", "Added Records: "+visits.length);
+        populateView();
     }
 
     private void populateView() {
@@ -403,16 +457,17 @@ public class DashbaordFragment extends Fragment {
         totalVisits.clear();
         VisitDB[] visits = visitDao.loadAllVisits();
         Log.d("DBROOM", "populateView: "+visits.length);
-        int highVisits = 0, missedVisits = 0;
+        int highVisits = 0, missedVisit = 0;
         for (VisitDB v : visits) {
-            Visit visit = new Visit(v.distributorName,v.time,v.time,v.visitId,v.status,"Visit");
+           int num = taskDao.loadVisitTasks(v.visitId).length;
+            Visit visit = new Visit(v.distributorName,v.distributorAddress,v.time,v.time,v.visitId,v.status,v.priority      ,"Visit",num);
             totalVisits.add(visit);
             if(v.priority.equals("High")){
                 highVisits += 1;
                 highPriorityVisits.add(visit);
             }
             if(!v.status.equals("Completed")){
-                missedVisits += 1;
+                missedVisit += 1;
             }
             //Log.d("DBROOM", "New Visit: "+visit.getName() +" Synced: "+v.isSynced);
         }
@@ -423,27 +478,45 @@ public class DashbaordFragment extends Fragment {
         }
         Log.d("DBROOM", "Total Views: "+totalVisits.size());
         Log.d("DBROOM", "Total Views on UI: "+totalVisits.size());
+
         VisitDashboardAdapter adapter = new VisitDashboardAdapter(totalVisits,getContext());
 
+        if (isMissedSelected) {
+            adapter = new VisitDashboardAdapter(missedVisits, getContext());
+        }
+        if (isHighSelected){
+            adapter = new VisitDashboardAdapter(highPriorityVisits, getContext());
+        }
         int finalHighVisits = highVisits;
-        int finalMissedVisits = missedVisits;
+        int finalMissedVisits = missedVisit;
+        VisitDashboardAdapter finalAdapter = adapter;
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 rvVisits.setHasFixedSize(true);
                 rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
-                rvVisits.setAdapter(adapter);
-                getView().findViewById(R.id.constraintLayout).setVisibility(View.VISIBLE);
-                getView().findViewById(R.id.llDashbaord).setVisibility(View.VISIBLE);
+                rvVisits.setAdapter(finalAdapter);
+                requireView().findViewById(R.id.constraintLayout).setVisibility(View.VISIBLE);
+                requireView().findViewById(R.id.llDashbaord).setVisibility(View.VISIBLE);
                 rvVisits.setVisibility(View.VISIBLE);
-                getView().findViewById(R.id.progressBar3).setVisibility(View.GONE);
+                requireView().findViewById(R.id.progressBar3).setVisibility(View.GONE);
                 isLoaded = true;
                 bVisits.setText("View All "+(totalVisits.size())+" Visits");
-                tvHighPrioNumber.setText(finalHighVisits +" Visits");
-                tvMissedNumber.setText(finalMissedVisits +" Visits");
+                if (isMissedSelected) {
+                    bVisits.setText("View All "+(missedVisits.size())+" Visits");
+                }
+                if (isHighSelected){
+                    bVisits.setText("View All "+(highPriorityVisits.size())+" Visits");
+                }
+                tvHighPrioNumber.setText(finalHighVisits +"");
+                tvMissedNumber.setText(finalMissedVisits +"");
             }
         });
-
+//        try {
+//            checkquery("SELECT Name,ID,Status__c,Priority__c,DistributorToVisit__c, DistributorToVisit__r.Name,VisitStartTime__c,VisitEndTime__c, DistributorToVisit__r.BillingStreet, RetailerToVisit__c,RetailerToVisit__r.Name, RetailerToVisit__r.MailingStreet, BeatPlanning__c,BeatPlanning__r.Name, BeatPlanning__r.BeatTasks__c, BeatLocation__c, BeatLocation__r.Name, Owner.Name,(SELECT Status, COUNT(id) cnt from Tasks GROUP BY ROLLUP(status)) from Visit__c where OwnerId='"+ownerId+"'","Composite Query");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
     }
 
 //    @Override
@@ -454,11 +527,9 @@ public class DashbaordFragment extends Fragment {
     private void connectSF(){
         String accountType =
                 SalesforceSDKManager.getInstance().getAccountType();
-
         ClientManager.LoginOptions loginOptions =
                 SalesforceSDKManager.getInstance().getLoginOptions();
-        loginOptions.setLoginUrl("http://google.com");
-
+        //loginOptions.setLoginUrl("http://google.com");
 // Get a rest client
         new ClientManager(getActivity(), accountType, loginOptions,
                 false).
@@ -473,6 +544,32 @@ public class DashbaordFragment extends Fragment {
                         }
                         // Cache the returned client
                         client1 = client;
+
+                        String token = "";
+                        try {
+                            ownerId = client1.getJSONCredentials().getString("userId");
+                            fetchDealerID();
+                            Log.d("2511", "Profile ID: "+client.getJSONCredentials().toString());
+                            JSONObject cred = client1.getJSONCredentials();
+                            token = cred.getString("accessToken");
+
+
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        String finalToken = token;
+                        AsyncTask.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                checkSalesOrderQuery(finalToken);
+//                                checkSalesOrderQuery(client.getAuthToken());
+//                                checkSalesOrderQuery(client.getRefreshToken());
+                            }
+                        });
+                        Log.d("2512", "Token: "+client.getRefreshToken());
+
                         ((TextView)((NavigationView)getView().getRootView().findViewById(R.id.nav_view)).getHeaderView(0).findViewById(R.id.tvUserName)).setText(client.getClientInfo().displayName);
                         ((TextView)((NavigationView)getView().getRootView().findViewById(R.id.nav_view)).getHeaderView(0).findViewById(R.id.tvUserEMail)).setText(client.getClientInfo().email);
                         Picasso.get().load(client.getClientInfo().thumbnailUrl).placeholder(R.drawable.user).into(((ImageView)((NavigationView)getView().getRootView().findViewById(R.id.nav_view)).getHeaderView(0).findViewById(R.id.ivUserDP)));
@@ -490,10 +587,48 @@ public class DashbaordFragment extends Fragment {
                 });
     }
 
+    void fetchDealerID() throws UnsupportedEncodingException {
+        String soql = null;
+        try {
+            soql = "Select Id, Contact.Id, Contact.Name, Contact.Account.ID, Contact.Account.Name from User where id='"+client1.getJSONCredentials().getString("userId")+"'";
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+               getActivity(). runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //listAdapter.clear();
+                            JSONArray records = result.asJSONObject().getJSONArray("records");
+                            dealerID = records.getJSONObject(0).getJSONObject("Contact").getJSONObject("Account").getString("Id");
+                            checkquery("select Product__r.name, name, ChargeMaster__r.Description__c, ChargeMaster__r.ChargeType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.AmountType__c from ProductChargeConfiguration__c where Dealer__c='"+dealerID+"' and (Product__r.name= null or Product__c='01t3h0000019DJ0AAM') and Active__c = true AND IsValid__c = true","2515 Product Charges");
+                            checkquery("SELECT ID, ChargeMaster__c, AccountGroup__c, ChargeMaster__r.Description__c, ChargeMaster__r.AmountType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.ChargeType__c, Active__c, IsValid__c,Level__c, Dealer__c , DocumentType__c FROM DocumentChargeConfig__c where Active__c = true AND IsValid__c = true AND Level__c ='Dealer' AND AccountGroup__c =NULL AND Dealer__c ='"+dealerID+"' AND (DocumentType__c ='SALES ORDER' OR DocumentType__c =NULL)","2515 Dealer Charges");
+                            checkquery("SELECT ID, ChargeMaster__c, AccountGroup__c, ChargeMaster__r.Description__c, ChargeMaster__r.AmountType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.ChargeType__c, Dealer__c, DocumentType__c, Active__c, IsValid__c, Level__c FROM DocumentChargeConfig__c where  Active__c = true AND IsValid__c = true\n" +
+                                    "and (DocumentType__c=null or DocumentType__c='SALES ORDER')","2515 Other Charges");
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+            }
+        });
+    }
+
     private void fetchVisits(){
         ArrayList<VisitDB> fetchedVisits = new ArrayList<>();
         try {
-            String ownerId = client1.getJSONCredentials().getString("userId");
+
             //sendHighRequest("SELECT Name,Priority__c,DistributorToVisit__r.Name,ID,Status__c,RetailerToVisit__c,VisitStartTime__c FROM Visit__c where OwnerId='"+ownerId+"' and Priority__c='High' ORDER BY VisitStartTime__c ASC");
             //sendMissedRequest("SELECT Name,Priority__c,DistributorToVisit__r.Name,ID,Status__c,RetailerToVisit__c,VisitStartTime__c FROM Visit__c where OwnerId='"+ownerId+"' and Status__C='Missed' ORDER BY VisitStartTime__c DESC");
             //sendTotalRequest("SELECT Name,ID,Status__c,Priority__c,DistributorToVisit__c, DistributorToVisit__r.Name,VisitStartTime__c,VisitEndTime__c, DistributorToVisit__r.BillingStreet, RetailerToVisit__c,RetailerToVisit__r.Name, RetailerToVisit__r.MailingStreet, BeatPlanning__c,BeatPlanning__r.Name, BeatPlanning__r.BeatTasks__c, BeatLocation__c, BeatLocation__r.Name, Owner.Name from Visit__c where OwnerId='"+ownerId+"' ORDER BY VisitStartTime__c DESC");
@@ -514,7 +649,6 @@ public class DashbaordFragment extends Fragment {
 //                            for (int i = 0; i < records.length(); i++) {
 //                                listAdapter.add(records.getJSONObject(i).getString("Name"));
 //                            }
-
 
                             fetchedVisits.clear();
                             for (int i = 0; i < records.length(); i++) {
@@ -569,12 +703,12 @@ public class DashbaordFragment extends Fragment {
                         } catch (Exception e){
                             onError(e);
                             Log.e("2512", "Login Error: "+e.toString());
-                            AsyncTask.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    populateView();
-                                }
-                            });
+//                            AsyncTask.execute(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    populateView();
+//                                }
+//                            });
 
                         }
                     }
@@ -604,8 +738,6 @@ public class DashbaordFragment extends Fragment {
             }
         });
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -664,6 +796,9 @@ public class DashbaordFragment extends Fragment {
 
             Log.d("2512", "onResume: Is Loaded = false");
             connectSF();
+
+
+
 //            String accountType =
 //                    SalesforceSDKManager.getInstance().getAccountType();
 //
@@ -698,13 +833,39 @@ public class DashbaordFragment extends Fragment {
 //                                }
 //                            }
 //                    );
+        }
+    }
 
+    private void checkSalesOrderQuery(String token) {
+        OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url("https://dms-dev-ed.my.salesforce.com/services/apexrest/DemoService/a1K3h00000494csEAA")
+                    .addHeader("Authorization","Bearer "+token)
+                    .build();
 
+            try (Response response = client.newCall(request).execute()) {
+                //Log.d("2514", "Request URL: https://dms-dev-ed.my.salesforce.com/services/apexrest/DemoService/a1K3h0000048l32EAA"+ "\n" +" Token: "+token +"\n"+ " Response: "+response.body().string());
+                log(response.body().string());
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("2514", "checkSalesOrderQuery: "+e.toString());
+            }
+    }
+
+    public void log(String message) {
+        // Split by line, then ensure each line can fit into Log's maximum length.
+        for (int i = 0, length = message.length(); i < length; i++) {
+            int newline = message.indexOf('\n', i);
+            newline = newline != -1 ? newline : length;
+            do {
+                int end = Math.min(newline, i + 1000);
+                Log.d("2514", message.substring(i, end));
+                i = end;
+            } while (i < newline);
         }
     }
 
     void calculateMissed() throws ParseException {
-
         Log.d("2512 Date", "Calculating"+ totalVisits.size()+ " Dates");
         missedVisits.clear();
         for(Visit v : totalVisits){
@@ -715,198 +876,207 @@ public class DashbaordFragment extends Fragment {
                 missedVisits.add(v);
             }
         }
-        tvMissedNumber.setText(missedVisits.size()+" Visits");
-    }
 
-    private void sendTotalRequest(String soql) throws UnsupportedEncodingException {
-        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
-
-        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onSuccess(RestRequest request, final RestResponse result) {
-                result.consumeQuietly(); // consume before going back to main thread
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            //listAdapter.clear();
-                            Log.d("2512", "Result :" + result.toString());
-                            JSONArray records = result.asJSONObject().getJSONArray("records");
-//                            for (int i = 0; i < records.length(); i++) {
-//                                listAdapter.add(records.getJSONObject(i).getString("Name"));
-//                            }
-
-
-                            totalVisits.clear();
-                            for (int i = 0; i < records.length(); i++) {
-                                if ((records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") || (records.getJSONObject(i).has("RetailerToVisit__r") && records.getJSONObject(i).getString("RetailerToVisit__r") != "null")) {
-                                    String name = "";
-
-                                    if (records.getJSONObject(i).getString("DistributorToVisit__r") != "null"){
-                                        name = records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name");
-                                    }
-
-                                    if (records.getJSONObject(i).getString("RetailerToVisit__r") != "null"){
-                                        name = records.getJSONObject(i).getJSONObject("RetailerToVisit__r").getString("Name");
-                                    }
-                                    String time = records.getJSONObject(i).getString("VisitStartTime__c");
-                                    String prio = records.getJSONObject(i).getString("Status__c");
-                                    time = time.replace("T", ", ").substring(0, time.length() - 8);
-                                    String id = records.getJSONObject(i).getString("Id");
-                                    String date = time.split(",")[0];
-
-                                    Visit vTemp = new Visit(name, time, date, id, prio,"Visit");
-
-                                    totalVisits.add(vTemp);
-                                }
-
-                            }
-                            tinyDB.putBoolean("SFIN", true);
-                            isLoaded = true;
-
-                            VisitDashboardAdapter adapter = new VisitDashboardAdapter(totalVisits,getContext());
-                            rvVisits.setHasFixedSize(true);
-                            rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
-                            rvVisits.setAdapter(adapter);
-                            bVisits.setText("View All "+(totalVisits.size())+" Visits");
-
-                            for (Visit a: totalVisits) {
-                                cachedVisitsTotal.add((Object)a);
-                            }
-
-                            tinyDB.putListObject("VisitsList",cachedVisitsTotal);
-
-                            getView().findViewById(R.id.constraintLayout).setVisibility(View.VISIBLE);
-                            getView().findViewById(R.id.llDashbaord).setVisibility(View.VISIBLE);
-
-                            getView().findViewById(R.id.progressBar3).setVisibility(View.GONE);
-
-                            calculateMissed();
-
-                        } catch (Exception e){
-                            onError(e);
-                            Log.e("2512", "Login Error: "+e.toString());
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onError(final Exception exception) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        Toast.makeText(getContext(),
-//                                "Unable to connect to Salesforce Server!",
-//                                Toast.LENGTH_LONG).show();
-                        loadCachedVisits("Total");
-                    }
-                });
+            public void run() {
+                tvMissedNumber.setText(missedVisits.size()+"");
             }
         });
+
     }
 
-    private void sendHighRequest(String soql) throws UnsupportedEncodingException {
-        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
-
-        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
-            @Override
-            public void onSuccess(RestRequest request, final RestResponse result) {
-                result.consumeQuietly(); // consume before going back to main thread
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            //listAdapter.clear();
-                            Log.d("2512", "Result :" + result.toString());
-                            JSONArray records = result.asJSONObject().getJSONArray("records");
+//    private void sendTotalRequest(String soql) throws UnsupportedEncodingException {
+//        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+//
+//        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+//            @Override
+//            public void onSuccess(RestRequest request, final RestResponse result) {
+//                result.consumeQuietly(); // consume before going back to main thread
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            //listAdapter.clear();
+//                            Log.d("2512", "Result :" + result.toString());
+//                            JSONArray records = result.asJSONObject().getJSONArray("records");
+////                            for (int i = 0; i < records.length(); i++) {
+////                                listAdapter.add(records.getJSONObject(i).getString("Name"));
+////                            }
+//
+//
+//                            totalVisits.clear();
 //                            for (int i = 0; i < records.length(); i++) {
-//                                listAdapter.add(records.getJSONObject(i).getString("Name"));
+//                                if ((records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") || (records.getJSONObject(i).has("RetailerToVisit__r") && records.getJSONObject(i).getString("RetailerToVisit__r") != "null")) {
+//                                    String name = "";
+//                                    String address = "";
+//
+//                                    if (records.getJSONObject(i).getString("DistributorToVisit__r") != "null"){
+//                                        name = records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name");
+//                                        //address = records.getJSONObject(i).getJSONObject("")
+//                                    }
+//
+//                                    if (records.getJSONObject(i).getString("RetailerToVisit__r") != "null"){
+//                                        name = records.getJSONObject(i).getJSONObject("RetailerToVisit__r").getString("Name");
+//                                    }
+//                                    String time = records.getJSONObject(i).getString("VisitStartTime__c");
+//                                    String prio = records.getJSONObject(i).getString("Status__c");
+//                                    time = time.replace("T", ", ").substring(0, time.length() - 8);
+//                                    String id = records.getJSONObject(i).getString("Id");
+//                                    String date = time.split(",")[0];
+//
+//                                    Visit vTemp = new Visit(name, time, date, id, prio,"Visit");
+//
+//                                    totalVisits.add(vTemp);
+//                                }
+//
 //                            }
+//                            tinyDB.putBoolean("SFIN", true);
+//                            isLoaded = true;
+//
+//                            VisitDashboardAdapter adapter = new VisitDashboardAdapter(totalVisits,getContext());
+//                            rvVisits.setHasFixedSize(true);
+//                            rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
+//                            rvVisits.setAdapter(adapter);
+//                            bVisits.setText("View All "+(totalVisits.size())+" Visits");
+//
+//                            for (Visit a: totalVisits) {
+//                                cachedVisitsTotal.add((Object)a);
+//                            }
+//
+//                            tinyDB.putListObject("VisitsList",cachedVisitsTotal);
+//
+//                            getView().findViewById(R.id.constraintLayout).setVisibility(View.VISIBLE);
+//                            getView().findViewById(R.id.llDashbaord).setVisibility(View.VISIBLE);
+//
+//                            getView().findViewById(R.id.progressBar3).setVisibility(View.GONE);
+//
+//                            calculateMissed();
+//
+//                        } catch (Exception e){
+//                            onError(e);
+//                            Log.e("2512", "Login Error: "+e.toString());
+//                        }
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onError(final Exception exception) {
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+////                        Toast.makeText(getContext(),
+////                                "Unable to connect to Salesforce Server!",
+////                                Toast.LENGTH_LONG).show();
+//                        loadCachedVisits("Total");
+//                    }
+//                });
+//            }
+//        });
+//    }
 
-                            highPriorityVisits.clear();
-                            for (int i = 0; i < records.length(); i++) {
-                                if (records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") {
-                                    String name = (records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name"));
-                                    String time = records.getJSONObject(i).getString("VisitStartTime__c");
-                                    String prio = records.getJSONObject(i).getString("Status__c");
-                                    time = time.replace("T", ", ").substring(0, time.length() - 8);
-                                    String id = records.getJSONObject(i).getString("Id");
-                                    String date = time.split(",")[0];
+//    private void sendHighRequest(String soql) throws UnsupportedEncodingException {
+//        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+//
+//        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+//            @Override
+//            public void onSuccess(RestRequest request, final RestResponse result) {
+//                result.consumeQuietly(); // consume before going back to main thread
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            //listAdapter.clear();
+//                            Log.d("2512", "Result :" + result.toString());
+//                            JSONArray records = result.asJSONObject().getJSONArray("records");
+////                            for (int i = 0; i < records.length(); i++) {
+////                                listAdapter.add(records.getJSONObject(i).getString("Name"));
+////                            }
+//
+//                            highPriorityVisits.clear();
+//                            for (int i = 0; i < records.length(); i++) {
+//                                if (records.getJSONObject(i).has("DistributorToVisit__r") && records.getJSONObject(i).getString("DistributorToVisit__r") != "null") {
+//                                    String name = (records.getJSONObject(i).getJSONObject("DistributorToVisit__r").getString("Name"));
+//                                    String time = records.getJSONObject(i).getString("VisitStartTime__c");
+//                                    String prio = records.getJSONObject(i).getString("Status__c");
+//                                    time = time.replace("T", ", ").substring(0, time.length() - 8);
+//                                    String id = records.getJSONObject(i).getString("Id");
+//                                    String date = time.split(",")[0];
+//
+//                                    Visit vTemp = new Visit(name, time,date, id, prio,"Visit");
+//
+//                                    highPriorityVisits.add(vTemp);
+//                                }
+//
+//                            }
+//
+//
+//                            for (Visit a: highPriorityVisits) {
+//                                cachedVisitsHigh.add((Object)a);
+//                            }
+//
+//                            tinyDB.putListObject("VisitsListHigh",cachedVisitsHigh);
+//                            tvHighPrioNumber.setText(records.length()+"");
+//                        } catch (Exception e) {
+//                            onError(e);
+//                            Log.e("2512", "Login Error: "+e.toString());
+//                        }
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onError(final Exception exception) {
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        loadCachedVisits("High");
+////                        Toast.makeText(getContext(),
+////                                getActivity().getString(R.string.sf__generic_error, exception.toString()),
+////                                Toast.LENGTH_LONG).show();
+//                    }
+//                });
+//            }
+//        });
+//    }
 
-                                    Visit vTemp = new Visit(name, time,date, id, prio,"Visit");
-
-                                    highPriorityVisits.add(vTemp);
-                                }
-
-                            }
-
-
-                            for (Visit a: highPriorityVisits) {
-                                cachedVisitsHigh.add((Object)a);
-                            }
-
-                            tinyDB.putListObject("VisitsListHigh",cachedVisitsHigh);
-                            tvHighPrioNumber.setText(records.length()+" Visits");
-                        } catch (Exception e) {
-                            onError(e);
-                            Log.e("2512", "Login Error: "+e.toString());
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onError(final Exception exception) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        loadCachedVisits("High");
-//                        Toast.makeText(getContext(),
-//                                getActivity().getString(R.string.sf__generic_error, exception.toString()),
-//                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        });
-    }
-
-    private void loadCachedVisits(String filter){
-        if (filter.equals("Total")) {
-            if (tinyDB.getListObject("VisitsList", Visit.class) != null) {
-                ArrayList<Object> visitObjects = tinyDB.getListObject("VisitsList", Visit.class);
-                ArrayList<Visit> visits = new ArrayList<>();
-
-                cachedVisitsTotal.clear();
-                for (Object objs : visitObjects) {
-                    visits.add((Visit) objs);
-                    cachedVisitsTotal.add((Visit)objs);
-                }
-
-                VisitDashboardAdapter adapter = new VisitDashboardAdapter(visits, getContext());
-                rvVisits.setHasFixedSize(true);
-                rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
-                rvVisits.setAdapter(adapter);
-                bVisits.setText("View All " + (cachedVisitsTotal.size()) + " Visits");
-            }
-        }
-
-        if (filter.equals("High")) {
-            if (tinyDB.getListObject("VisitsListHigh", Visit.class) != null) {
-                ArrayList<Object> visitObjects = tinyDB.getListObject("VisitsListHigh", Visit.class);
-                cachedVisitsHigh.clear();
-                for (Object objs : visitObjects) {
-                    cachedVisitsHigh.add((Visit) objs);
-                }
-                tvHighPrioNumber.setText(cachedVisitsHigh.size()+" Visits");
+//    private void loadCachedVisits(String filter){
+//        if (filter.equals("Total")) {
+//            if (tinyDB.getListObject("VisitsList", Visit.class) != null) {
+//                ArrayList<Object> visitObjects = tinyDB.getListObject("VisitsList", Visit.class);
+//                ArrayList<Visit> visits = new ArrayList<>();
+//
+//                cachedVisitsTotal.clear();
+//                for (Object objs : visitObjects) {
+//                    visits.add((Visit) objs);
+//                    cachedVisitsTotal.add((Visit)objs);
+//                }
+//
 //                VisitDashboardAdapter adapter = new VisitDashboardAdapter(visits, getContext());
 //                rvVisits.setHasFixedSize(true);
 //                rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
 //                rvVisits.setAdapter(adapter);
-//                bVisits.setText("View All " + (visits.size()) + " Visits");
-            }
-        }
-    }
+//                bVisits.setText("View All " + (cachedVisitsTotal.size()) + " Visits");
+//            }
+//        }
+//
+//        if (filter.equals("High")) {
+//            if (tinyDB.getListObject("VisitsListHigh", Visit.class) != null) {
+//                ArrayList<Object> visitObjects = tinyDB.getListObject("VisitsListHigh", Visit.class);
+//                cachedVisitsHigh.clear();
+//                for (Object objs : visitObjects) {
+//                    cachedVisitsHigh.add((Visit) objs);
+//                }
+//                tvHighPrioNumber.setText(cachedVisitsHigh.size()+"");
+////                VisitDashboardAdapter adapter = new VisitDashboardAdapter(visits, getContext());
+////                rvVisits.setHasFixedSize(true);
+////                rvVisits.setLayoutManager(new LinearLayoutManager(getContext()));
+////                rvVisits.setAdapter(adapter);
+////                bVisits.setText("View All " + (visits.size()) + " Visits");
+//            }
+//        }
+//    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -948,7 +1118,7 @@ public class DashbaordFragment extends Fragment {
                 if (isHighSelected){
                     isHighSelected = false;
                     ((CardView) root.findViewById(R.id.cvPriority)).setCardBackgroundColor(getResources().getColor(android.R.color.white, null));
-                    ((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
+                    //((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
                     ((TextView) root.findViewById(R.id.tvHighDash)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
                     ((TextView) root.findViewById(R.id.tvHighPriorityNumDashboard)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
 
@@ -982,14 +1152,14 @@ public class DashbaordFragment extends Fragment {
                     isHighSelected = true;
                     //bVisits.setText("View All "+highPriorityVisits.size()+" Visits");
                     ((CardView) root.findViewById(R.id.cvPriority)).setCardBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
-                    ((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(android.R.color.white, null));
+                    //((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(android.R.color.white, null));
                     ((TextView) root.findViewById(R.id.tvHighDash)).setTextColor(getResources().getColor(android.R.color.white, null));
                     ((TextView) root.findViewById(R.id.tvHighPriorityNumDashboard)).setTextColor(getResources().getColor(android.R.color.white, null));
 
                     if(isMissedSelected){
                         isMissedSelected = false;
                         ((CardView) root.findViewById(R.id.cvMissed)).setCardBackgroundColor(getResources().getColor(android.R.color.white, null));
-                        ((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
+                        //((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
                         ((TextView) root.findViewById(R.id.tvMissedDash)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
                         ((TextView) root.findViewById(R.id.tvMissedNumDashboard)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
 
@@ -1025,7 +1195,7 @@ public class DashbaordFragment extends Fragment {
                 if (isMissedSelected) {
                     isMissedSelected = false;
                     ((CardView) root.findViewById(R.id.cvMissed)).setCardBackgroundColor(getResources().getColor(android.R.color.white, null));
-                    ((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
+                    //((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
                     ((TextView) root.findViewById(R.id.tvMissedDash)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
                     ((TextView) root.findViewById(R.id.tvMissedNumDashboard)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
 
@@ -1037,14 +1207,14 @@ public class DashbaordFragment extends Fragment {
                     isMissedSelected = true;
                     bVisits.setText("View All "+(missedVisits.size())+" Visits");
                     ((CardView) root.findViewById(R.id.cvMissed)).setCardBackgroundColor(getResources().getColor(R.color.colorPrimary, null));
-                    ((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(android.R.color.white, null));
+                    //((ImageView) root.findViewById(R.id.ivMissedDash)).setColorFilter(getResources().getColor(android.R.color.white, null));
                     ((TextView) root.findViewById(R.id.tvMissedDash)).setTextColor(getResources().getColor(android.R.color.white, null));
                     ((TextView) root.findViewById(R.id.tvMissedNumDashboard)).setTextColor(getResources().getColor(android.R.color.white, null));
 
                     if(isHighSelected){
                         isHighSelected = false;
                         ((CardView) root.findViewById(R.id.cvPriority)).setCardBackgroundColor(getResources().getColor(android.R.color.white, null));
-                        ((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
+                        //((ImageView) root.findViewById(R.id.ivHighDash)).setColorFilter(getResources().getColor(R.color.disbaled_color, null));
                         ((TextView) root.findViewById(R.id.tvHighDash)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
                         ((TextView) root.findViewById(R.id.tvHighPriorityNumDashboard)).setTextColor(getResources().getColor(R.color.disbaled_color, null));
                     }
@@ -1064,10 +1234,54 @@ public class DashbaordFragment extends Fragment {
         return root;
     }
 
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    void checkquery(String query, String tag) throws UnsupportedEncodingException {
+        String soql = query;
+        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //listAdapter.clear();
+                            Log.d(tag, "Result :" + result.toString());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getContext(),
+//                                "Unable to connect to Salesforce Server!",
+//                                Toast.LENGTH_LONG).show();
+                        tinyDB.putBoolean("Online", false);
+
+                        ((HostActivity)getActivity()).updateStatusBarColor("#FF675B");
+                        //loadCachedVisits("Total");
+                        AsyncTask.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                populateView();
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 }

@@ -2,13 +2,19 @@ package com.pwc.d2ep;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+
+import com.pwc.d2ep.db.AppDatabase;
+import com.pwc.d2ep.db.TaskDao;
+import com.salesforce.androidsdk.rest.RestClient;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,10 +26,16 @@ public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAd
 
     private static ArrayList<Visit> visits;
     private static Context c;
+//    AppDatabase db;
+//
+//    TaskDao taskDao;
     // RecyclerView recyclerView;
     public VisitDashboardAdapter(ArrayList<Visit> listdata, Context context) {
         this.visits = listdata;
         this.c = context;
+//        db = Room.databaseBuilder(c,
+//                AppDatabase.class, "d2ep_db").build();
+//        taskDao = db.taskDao();
     }
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -47,30 +59,58 @@ public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAd
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         try {
             Date strDate = sdf.parse(split[0]);
-            holder.tvDate.setText("Date: "+new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+"     Time:"+split[1]);
+            holder.tvDate.setText(new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+" | "+split[1]);
 
         } catch (ParseException e) {
             e.printStackTrace();
-            holder.tvDate.setText("Date: "+split[0]+"     Time:"+split[1]);
-
+            holder.tvDate.setText(split[0]+" | "+split[1]);
         }
 
+//        AsyncTask.execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                int num = taskDao.loadVisitTasks(visits.get(position).getID()).length;
+//
+//                holder.tasks.setText(""+num);
+//            }
+//        });
 
 
-
+        holder.tvAddress.setText(visits.get(position).getAddress());
+        //holder.tvAddress.setText(visits.get(position).getAddress());
 //        if (visits.get(position).getPriority().equals("New")){
 //            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.red,null));
 //        }
 
+        Date strDate = null;
+        if (!visits.get(position).getPriority().equals("Completed")) {
+            try {
+                strDate = sdf.parse(visits.get(position).getDate());
+                if (new Date().after(strDate) && !visits.get(position).getPriority().equals("Completed")) {
+                    holder.ivMissed.setVisibility(View.VISIBLE);
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        //Log.d("2512 Date", "Visit Date: "+ strDate.toString()+" is: " +(new Date().after(strDate) ? "After" : "Before")+ new Date().toString());
+
+
+        if (visits.get(position).getStatus().equals("High")){
+            holder.ivHigh.setVisibility(View.VISIBLE);
+        }
+
         if (visits.get(position).getPriority().equals("New")){
             holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_blue_dark,null));
         }
+        if (visits.get(position).getPriority().equals("InProgress")){
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_yellow,null));
+        }
 
         if (visits.get(position).getPriority().equals("Completed")){
-            holder.vPriority.setBackgroundColor(c.getResources().getColor(android.R.color.holo_green_dark,null));
+            holder.vPriority.setBackgroundColor(c.getResources().getColor(R.color.status_completed,null));
         }
     }
-
 
     @Override
     public int getItemCount() {
@@ -78,15 +118,23 @@ public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAd
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvName;
+        public TextView tvName, tvAddress;
         public TextView tvDate;
         public View vPriority;
+        ImageView ivHigh, ivMissed;
+        TextView tasks;
         public ViewHolder(View itemView) {
             super(itemView);
 
             this.tvName = (TextView) itemView.findViewById(R.id.tvNameVisitItem);
             this.tvDate = (TextView) itemView.findViewById(R.id.tvDateVisitItem);
             this.vPriority = itemView.findViewById(R.id.vPriorityVisitItem);
+            this.tvAddress = (TextView) itemView.findViewById(R.id.tvAddressVisitItem);
+            this.ivHigh = itemView.findViewById(R.id.imageView3);
+            this.ivMissed = itemView.findViewById(R.id.imageView5);
+//            this.tasks = itemView.findViewById(R.id.textView35);
+//            itemView.findViewById(R.id.textView28).setVisibility(View.VISIBLE);
+//            this.tasks.setVisibility(View.VISIBLE);
 
             itemView.findViewById(R.id.cvVisitItem).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -108,5 +156,15 @@ public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAd
                 }
             });
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
     }
 }
