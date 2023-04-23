@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -55,6 +56,7 @@ import com.salesforce.androidsdk.rest.RestResponse;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
@@ -88,7 +90,7 @@ public class VisitsListFragment extends Fragment {
     VisitGalleryAdapter adapter;
     private boolean canChange = true;
     ArrayAdapter aa;
-
+    private String ownerId;
     Dialog dialog;
     String[] statuses = {"All" ,"Not Started", "In Progress", "Completed"};
 
@@ -112,6 +114,7 @@ public class VisitsListFragment extends Fragment {
         missedVisits = new ArrayList<>();
         totalVisits = new ArrayList<>();
         highVisits = new ArrayList<>();
+        ownerId = tinyDB.getString("ownerID");
 
         aa = new ArrayAdapter(getContext(),android.R.layout.simple_spinner_item,statuses);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -129,6 +132,7 @@ public class VisitsListFragment extends Fragment {
             case "High":
                 tabLayout.selectTab(tabLayout.getTabAt(2));
         }
+
 
                 AsyncTask.execute(new Runnable() {
             @Override
@@ -271,6 +275,8 @@ public class VisitsListFragment extends Fragment {
         dialog.findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ((ImageButton)getView().findViewById(R.id.imageButton)).setImageResource(R.drawable.dots);
+
                 rgFilter.clearCheck();
                 rgSort.clearCheck();
                 dialog.findViewById(R.id.etFilterName).setVisibility(View.GONE);
@@ -294,6 +300,7 @@ public class VisitsListFragment extends Fragment {
         dialog.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ((ImageButton)getView().findViewById(R.id.imageButton)).setImageResource(R.drawable.dots_badge);
 
                 if (selectedTab[0] == 1) {
                     switch (rgSort.getCheckedRadioButtonId()) {
@@ -415,40 +422,43 @@ public class VisitsListFragment extends Fragment {
         for (VisitDB v : visits) {
             Visit visit;
 
-            if(!Objects.equals(v.distributorName, "null")) {
-                visit = new Visit(v.distributorName, v.distributorAddress, v.time, v.name, v.visitId, v.status, v.priority, "Visit",taskDao.loadVisitTasks(v.visitId).length);
-            } else {
-                visit = new Visit(v.retailerName, v.retailerAddress, v.time, v.name, v.visitId, v.status,v.priority, "Visit",taskDao.loadVisitTasks(v.visitId).length);
-            }
-            switch (v.status){
-                case "New":
-                    notStarted += 1;
-                    break;
-                case "InProgress":
-                    inProgress += 1;
-                    break;
-                case "Completed":
-                    completed += 1;
-                    break;
-            }
-
-            int finalNotStarted = notStarted;
-            int finalInProgress = inProgress;
-            int finalCompleted = completed;
-            requireActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((TextView)requireView().findViewById(R.id.textView3)).setText("Not Started("+ finalNotStarted +")");
-                    ((TextView)requireView().findViewById(R.id.textView10)).setText("In Progress("+ finalInProgress +")");
-
-                    ((TextView)requireView().findViewById(R.id.textView11)).setText("Completed("+ finalCompleted +")");
-
+            if(v.ownerID.equals(ownerId)) {
+                if (!Objects.equals(v.distributorName, "null")) {
+                    visit = new Visit(v.distributorName, v.distributorAddress, v.time, v.name, v.visitId, v.status, v.priority, "Visit", taskDao.loadVisitTasks(v.visitId).length);
+                } else {
+                    visit = new Visit(v.retailerName, v.retailerAddress, v.time, v.name, v.visitId, v.status, v.priority, "Visit", taskDao.loadVisitTasks(v.visitId).length);
                 }
-            });
-            if(v.priority.equals("High")){
-                highVisits.add(visit);
+                switch (v.status) {
+                    case "New":
+                        notStarted += 1;
+                        break;
+                    case "InProgress":
+                        inProgress += 1;
+                        break;
+                    case "Completed":
+                        completed += 1;
+                        break;
+                }
+
+                int finalNotStarted = notStarted;
+                int finalInProgress = inProgress;
+                int finalCompleted = completed;
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((TextView) requireView().findViewById(R.id.textView3)).setText("Not Started(" + finalNotStarted + ")");
+                        ((TextView) requireView().findViewById(R.id.textView10)).setText("In Progress(" + finalInProgress + ")");
+
+                        ((TextView) requireView().findViewById(R.id.textView11)).setText("Completed(" + finalCompleted + ")");
+
+                    }
+                });
+
+                if (v.priority.equals("High")) {
+                    highVisits.add(visit);
+                }
+                totalVisits.add(visit);
             }
-            totalVisits.add(visit);
             //Log.d("DBROOM", "New Visit: "+visit.getName() +" Synced: "+v.isSynced);
         }
 //        Log.d("DBROOM", "Total Views: "+totalVisits.size());

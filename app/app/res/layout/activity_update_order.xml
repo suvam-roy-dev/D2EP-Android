@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F8FA"
-    tools:context=".NewOrderActivity">
+    tools:context=".UpdateOrderActivity">
 
 
     <com.google.android.material.tabs.TabLayout
@@ -55,6 +55,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:background="@drawable/spinner_bg"
+            android:clickable="false"
             android:spinnerMode="dropdown"
             app:layout_constraintBottom_toTopOf="@+id/spinner3"
             app:layout_constraintEnd_toEndOf="parent"
@@ -68,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:fontFamily="@font/poppins_medium"
-            android:text="Dealer Name : "
+            android:text="Dealer Name : YK Enterprises"
             android:textColor="@color/text_color_dark"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -94,26 +95,12 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:background="@drawable/spinner_bg"
-            android:visibility="invisible"
+            android:clickable="false"
             app:layout_constraintBottom_toTopOf="@+id/editTextTextMultiLine"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner2" />
-
-        <AutoCompleteTextView
-            android:id="@+id/autoCompleteTextView2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@drawable/spinner_bg"
-            android:hint="Search Customers"
-            android:imeOptions="actionDone"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/spinner3"
-            app:layout_constraintEnd_toEndOf="@+id/spinner3"
-            app:layout_constraintStart_toStartOf="@+id/spinner3"
-            app:layout_constraintTop_toTopOf="@+id/spinner3" />
 
         <TextView
             android:id="@+id/textView43"
@@ -200,13 +187,11 @@
             app:layout_constraintTop_toBottomOf="@+id/button10" />
 
         <ImageView
-            android:id="@+id/imageView9"
+            android:id="@+id/imageView10"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_marginEnd="8dp"
-            android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/spinner2"
             app:layout_constraintEnd_toEndOf="@+id/spinner2"
             app:layout_constraintTop_toTopOf="@+id/spinner2"
@@ -235,7 +220,7 @@
             android:background="@drawable/spinner_bg"
             android:drawableStart="@drawable/search"
             android:drawablePadding="16dp"
-            android:hint="Search Products"
+            android:hint="Search products"
             android:imeOptions="actionDone"
             android:includeFontPadding="true"
             android:paddingStart="8dp"
@@ -726,14 +711,14 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:tint="@color/colorPrimary"
                     app:layout_constraintBottom_toBottomOf="@+id/button13"
                     app:layout_constraintEnd_toStartOf="@+id/button13"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toEndOf="@+id/view4"
                     app:layout_constraintTop_toTopOf="@+id/button13"
-                    app:srcCompat="@drawable/cart" />
+                    app:srcCompat="@drawable/cart"
+                    app:tint="@color/colorPrimary" />
 
                 <ImageView
                     android:id="@+id/imageView8"

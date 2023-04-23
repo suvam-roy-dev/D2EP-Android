@@ -27,5 +27,6 @@
     <color name="status_red">#DA020F</color>
     <color name="status_completed">#1B8811</color>
     <color name="text_color_dark">#14171A</color>
+    <color name="text_color_dark_50">#E614171A</color>
 
 </resources>

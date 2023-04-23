@@ -44,11 +44,13 @@ import org.json.JSONArray;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 public class VisitDetailsActivity extends AppCompatActivity {
 
@@ -71,14 +73,13 @@ public class VisitDetailsActivity extends AppCompatActivity {
         visitDao = db.visitDao();
         taskDao = db.taskDao();
 
-
-
 //        Drawable d = getResources().getDrawable(R.drawable.rounded_appbar_bg,null);
 //        getSupportActionBar().setBackgroundDrawable(d);
 //        getSupportActionBar().setHomeButtonEnabled(true);
 //        getSupportActionBar().setHomeAsUpIndicator(R.drawable.arrow);
 
         visitId = getIntent().getStringExtra("ID");
+
         setTitle("Details");
         //setupSF();
 
@@ -91,7 +92,6 @@ public class VisitDetailsActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-
 
     }
 
@@ -166,6 +166,7 @@ public class VisitDetailsActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.tvDistAddDetailsNew)).setText(": " +selectedVisit.retailerAddress);
         }
         ((TextView)findViewById(R.id.tvVisitNameDetailsActivityNew)).setText(": " +selectedVisit.name);
+        setTitle(selectedVisit.name);
 
         ((TextView)findViewById(R.id.tvStatusVisitDetailsNew)).setText(selectedVisit.status);
 
@@ -205,6 +206,30 @@ public class VisitDetailsActivity extends AppCompatActivity {
         String date = split[0];
         String startTime = split[1];//.substring(0, split[1].length()-1);
 
+        String time = startTime.substring(0,startTime.length()-3);
+
+        String sDate1 = date + " " + time;
+
+        String formattedDate = "";
+        try {
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd hh:mm",Locale.getDefault());
+            sdf1.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date1=sdf1.parse(sDate1);
+            SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd hh:mm", Locale.getDefault());
+            s.setTimeZone(TimeZone.getTimeZone("IST"));
+            //  function will helps to get the GMT Timezone
+            // using the getTimeZOne() method
+            Calendar cal = Calendar.getInstance(); // creates calendar
+            cal.setTime(date1);               // sets calendar time/date
+            cal.add(Calendar.HOUR_OF_DAY, 5);
+            cal.add(Calendar.MINUTE, 30);// adds one hour
+            formattedDate = s.format(cal.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        String ftime = formattedDate.substring(formattedDate.length()-5,formattedDate.length());
+
 //        String endTimeString = records.getJSONObject(0).getString("VisitEndTime__c");
 //        String[] split2 = endTimeString.split("T");
 //        String endtTime = split2[1].substring(0, split2[1].length() - 9);
@@ -222,7 +247,7 @@ public class VisitDetailsActivity extends AppCompatActivity {
             //((TextView)findViewById(R.id.tvOwnerIDDetailsActivity)).setText(date + " / " +startTime.substring(0,startTime.length()-3));
 
         }
-        ((TextView)findViewById(R.id.tvDTDetailsActivityNew)).setText(": " +date + " | " +startTime.substring(0,startTime.length()-3));
+        ((TextView)findViewById(R.id.tvDTDetailsActivityNew)).setText(": " +date + " | " +ftime);
 
 //        findViewById(R.id.cvInfoVisitDetails).setVisibility(View.VISIBLE);
 //        findViewById(R.id.cvDistriVisitDetails).setVisibility(View.VISIBLE);

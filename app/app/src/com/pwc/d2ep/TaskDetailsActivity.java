@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.room.Room;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -46,15 +47,22 @@ import com.salesforce.androidsdk.rest.RestRequest;
 import com.salesforce.androidsdk.rest.RestResponse;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class TaskDetailsActivity extends AppCompatActivity {
     String visitId,taskId;
@@ -66,6 +74,9 @@ public class TaskDetailsActivity extends AppCompatActivity {
     String logID, visitName;
     FirebaseFirestore fdb;
     boolean isOnline;
+    String token, host;
+    TinyDB tinyDB;
+    Dialog dialog_progress;
 
     public static float dpToPx(Context context, float valueInDp) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
@@ -76,6 +87,17 @@ public class TaskDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_details_new);
+
+        tinyDB = new TinyDB(this);
+
+        token = tinyDB.getString("token");
+        host = tinyDB.getString("host");
+
+        dialog_progress = new Dialog(this);
+        dialog_progress.setContentView(R.layout.dialog_progress);
+        //dialog_load.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog_progress.setCancelable(false);
+        dialog_progress.setCanceledOnTouchOutside(false);
 
         fdb = FirebaseFirestore.getInstance();
         final View activityRootView = findViewById(R.id.linearLayout4);
@@ -214,9 +236,15 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 findViewById(R.id.bSaveTaskDetails).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        dialog_progress.show();
                         try {
                             updateTable(((CheckBox)findViewById(R.id.checkMarkComplete)).isChecked(),((CheckBox)findViewById(R.id.checkWaiting)).isChecked(),((EditText)findViewById(R.id.etDiscriptionTaskDetails2)).getText().toString());
-
+//                            AsyncTask.execute(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    updateTasksWithToken(token,host,((EditText)findViewById(R.id.etDiscriptionTaskDetails2)).getText().toString());
+//                                }
+//                            });
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                             Log.e("2512", "Update Error: "+e.toString());
@@ -334,6 +362,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
                                         if (rows > 0) {
                                             logFirebase("response", Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + ":" + Calendar.getInstance().get(Calendar.MINUTE) + ":" + Calendar.getInstance().get(Calendar.SECOND));
                                         }
+                                        dialog_progress.dismiss();
                                         finish();
                                     }
                                 });
@@ -341,7 +370,6 @@ public class TaskDetailsActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 onError(e);
                                 Log.e("2512", "Error: " + e.toString());
-
                             }
                         });
                     }
@@ -368,6 +396,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
 //                                    if (rows > 0){
 //                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show());
 //                                    }
+                                dialog_progress.dismiss();
                                 finish();
                             }
                         });
@@ -391,6 +420,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
 //                                    if (rows > 0){
 //                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(),"Task Updated", Toast.LENGTH_SHORT).show());
 //                                    }
+                        dialog_progress.dismiss();
                         finish();
                     }
                 });
@@ -641,6 +671,39 @@ public class TaskDetailsActivity extends AppCompatActivity {
         });
     }
 
+    private void updateTasksWithToken(String token, String host, String desc) {
+        ArrayList<TaskDB> fetchedTasks = new ArrayList<>();
+        OkHttpClient client = new OkHttpClient();
+        // Visits query
+
+
+        Request request = new Request.Builder()
+                //.url("https://dms-dev-ed.my.salesforce.com/services/apexrest/DemoService/a1K3h00000494csEAA")
+                //.url(host+"/services/data/v55.0/query/?q=SELECT Id, WhatId, Subject, ActivityDate, Status, Priority, Description, CompletedDateTime FROM Task where OwnerID ='"+ownerId+"'")
+                .url(host+"/services/data/v55.0/query/?q=UPDATE Task SET status = 'Completed', Description = '"+desc+"' WHERE Id = '"+taskId+"' and WhatId = '"+visitId+"'")
+                .addHeader("Authorization","Bearer "+token)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            //Log.d("2514", "Checking for query: "+ host+"/services/data/v55.0/query/?q=SELECT Id, WhatId, Subject, ActivityDate, Status, Priority, Description, CompletedDateTime FROM Task WHERE WhatId IN "+ visitsIDS +"");
+
+            String result = response.body().string();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        //listAdapter.clear();
+                        Log.d("TaskByToken", "Result :" + result.toString());
+
+                    } catch (Exception e){
+                        Log.e("TaskByToken", "Tasks By Token: "+e.toString());
+                    }
+                }
+            });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private void updateTable(TaskDB task) throws UnsupportedEncodingException {
         String soql= "";
         //soql = "UPDATE Task SET status = 'Completed', Description = '"+comments+"' WHERE Id = '"+taskId+"' and WhatId = '"+visitId+"'";
@@ -657,7 +720,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     try {
                         //listAdapter.clear();
-                        Log.d("2512 Visit", "Result :" + result.toString());
+                        Log.d("2512", "Result :" + result.toString());
                         //Toast.makeText(getActivity(),"Task Updated Successfully!",Toast.LENGTH_SHORT).show();
 
                         AsyncTask.execute(new Runnable() {

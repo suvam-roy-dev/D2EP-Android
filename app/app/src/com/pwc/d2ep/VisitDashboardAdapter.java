@@ -19,8 +19,10 @@ import com.salesforce.androidsdk.rest.RestClient;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAdapter.ViewHolder> {
 
@@ -59,8 +61,32 @@ public class VisitDashboardAdapter extends RecyclerView.Adapter<VisitDashboardAd
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         try {
             Date strDate = sdf.parse(split[0]);
-            holder.tvDate.setText(new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+" | "+split[1]);
+            //holder.tvDate.setText(new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+" | "+split[1]);
+            String date1 = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate);
+            String time1 = split[1];
+            String sDate1 = date1 + " " + time1;
+            String formattedDate = "";
 
+            try {
+                SimpleDateFormat sdf1 = new SimpleDateFormat("dd MMM yyyy hh:mm",Locale.getDefault());
+                sdf1.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date date11=sdf1.parse(sDate1);
+                SimpleDateFormat s = new SimpleDateFormat("dd MMM yyyy hh:mm", Locale.getDefault());
+                s.setTimeZone(TimeZone.getTimeZone("IST"));
+                //  function will helps to get the GMT Timezone
+                // using the getTimeZOne() method
+                Calendar cal = Calendar.getInstance(); // creates calendar
+                cal.setTime(date11);               // sets calendar time/date
+                cal.add(Calendar.HOUR_OF_DAY, 5);
+                cal.add(Calendar.MINUTE, 30);// adds one hour
+                formattedDate = s.format(cal.getTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            String ftime = formattedDate.substring(formattedDate.length()-5,formattedDate.length());
+
+            holder.tvDate.setText(new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(strDate)+" | "+ftime);
         } catch (ParseException e) {
             e.printStackTrace();
             holder.tvDate.setText(split[0]+" | "+split[1]);

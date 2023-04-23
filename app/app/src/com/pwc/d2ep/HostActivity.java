@@ -81,6 +81,9 @@ public class HostActivity extends AppCompatActivity {
         ClientManager.LoginOptions loginOptions =
                 SalesforceSDKManager.getInstance().getLoginOptions();
 // Get a rest client
+
+        try {
+
         new ClientManager(HostActivity.this, accountType, loginOptions,
                 false).
                 getRestClient(HostActivity.this, client -> {
@@ -104,6 +107,11 @@ public class HostActivity extends AppCompatActivity {
                     //sendRequest("SELECT Name,ID,Status__c,RetailerToVisit__c,VisitStartTime__c FROM Visit__c where OwnerId='"+ownerId+"'");
                 }
                 );
+        } catch (Exception e){
+            Log.d("2512", "onCreate: ");
+            finish();
+            startActivity(new Intent(this, LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        }
         setSupportActionBar(binding.appBarHost.toolbar);
         DrawerLayout drawer = binding.drawerLayout;
 
@@ -129,18 +137,13 @@ public class HostActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-
-
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_host);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }
 
-
     @Override
     public void onBackPressed() {
-
-
         new AlertDialog.Builder(this)
                 .setMessage("Are you sure you want to exit?")
                 .setCancelable(false)

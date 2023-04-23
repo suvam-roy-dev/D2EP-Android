@@ -77,6 +77,7 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
     int notStarted = 0;
     int inProgress = 0;
     int completed = 0;
+    String ownerId = "";
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -84,6 +85,7 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
         tinyDB = new TinyDB(getContext());
         selectedVisits = new ArrayList<>();
         totalVisits = new ArrayList<>();
+        ownerId = tinyDB.getString("ownerID");
 
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "d2ep_db").build();
@@ -137,9 +139,10 @@ public class CalenderFragment extends Fragment implements View.OnClickListener {
             //int highVisits = 0, missedVisits = 0;
 
             for (VisitDB v : visits) {
-
-                Visit visit = new Visit(v.distributorName, v.distributorAddress, v.time, v.time, v.visitId, v.status,v.priority, "Visit",taskDao.loadVisitTasks(v.visitId).length);
-                totalVisits.add(visit);
+                if(v.ownerID.equals(ownerId)) {
+                    Visit visit = new Visit(v.distributorName, v.distributorAddress, v.time, v.time, v.visitId, v.status, v.priority, "Visit", taskDao.loadVisitTasks(v.visitId).length);
+                    totalVisits.add(visit);
+                }
                 //Log.d("DBROOM", "New Visit: "+visit.getName() +" Synced: "+v.isSynced);
             }
 

@@ -39,13 +39,24 @@ public class SalesOrdersAdapter extends RecyclerView.Adapter<SalesOrdersAdapter.
         return viewHolder;
     }
 
+    public static String round(double value) {
+//        if (places < 0) throw new IllegalArgumentException();
+//
+//        BigDecimal bd = BigDecimal.valueOf(value);
+//        bd = bd.setScale(places, RoundingMode.HALF_UP);
+//        return bd.doubleValue();
+        String val = String.valueOf((double) Math.round(value * 100) / 100);
+
+        return (val.charAt(val.length()-1)) == '0' ? val+"0":val;
+    }
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final SalesOrder myListData = visits.get(position);
         holder.tvName.setText(visits.get(position).getCustomerName());
         holder.tvAddress.setText(visits.get(position).getBranchName());
         holder.tvDate.setText(visits.get(position).getDate());
-        holder.tvTotal.setText("₹ "+visits.get(position).getTotalCost());
+        holder.tvTotal.setText("₹ "+round(Double.parseDouble(visits.get(position).getTotalCost())));
         holder.tvProductCount.setText(visits.get(position).getProductCount());
 //        String date = visits.get(position).getDate();
 //

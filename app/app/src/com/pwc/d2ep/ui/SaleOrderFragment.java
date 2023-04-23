@@ -1,7 +1,11 @@
 package com.pwc.d2ep.ui;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.fonts.FontFamily;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -12,22 +16,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.pwc.d2ep.BadgeDrawable;
+import com.pwc.d2ep.Branch;
 import com.pwc.d2ep.NewOrderActivity;
 import com.pwc.d2ep.OrderObject;
 import com.pwc.d2ep.R;
 import com.pwc.d2ep.SalesOrder;
 import com.pwc.d2ep.SalesOrdersAdapter;
+import com.pwc.d2ep.TinyDB;
 import com.pwc.d2ep.Visit;
 import com.pwc.d2ep.VisitGalleryAdapter;
 import com.pwc.d2ep.databinding.FragmentSaleOrderBinding;
@@ -48,6 +58,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Objects;
+
+import smartdevelop.ir.eram.showcaseviewlib.GuideView;
+import smartdevelop.ir.eram.showcaseviewlib.config.DismissType;
+import smartdevelop.ir.eram.showcaseviewlib.config.Gravity;
+import smartdevelop.ir.eram.showcaseviewlib.config.PointerType;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class SaleOrderFragment extends Fragment {
 
@@ -67,9 +86,82 @@ public class SaleOrderFragment extends Fragment {
     ArrayList<SalesOrder> ordersList;
     String[] statuses = {"All" ,"Draft", "In Progress", "Completed"};
 
+    boolean isFirst = true;
+//    void startGuide(){
+////        new GuideView.Builder(getContext())
+////                .setTitle("Sort & Filter orders list")
+////                //.setContentText("You can open Sort/Filter menu by tapping this button!")
+////                .setGravity(Gravity.center)
+////                .setTargetView(binding.imageButton3)
+////                .setPointerType(PointerType.circle)
+////                .setDismissType(DismissType.outside) //optional - default dismissible by TargetView
+////                .build()
+////                .show();
+////
+////        new GuideView.Builder(getContext())
+////                .setTitle("Create new order")
+////                //.setContentText("You can create")
+////                .setGravity(Gravity.center)
+////                .setTargetView(binding.button9)
+////                .setPointerType(PointerType.circle)
+////                .setDismissType(DismissType.outside) //optional - default dismissible by TargetView
+////                .build()
+////                .show();
+//
+////        new MaterialShowcaseView.Builder(getActivity())
+////                .setTarget(binding.button9)
+////                .setDismissText("GOT IT")
+////                .setContentText("")
+////                .setDelay(500) // optional but starting animations immediately in onCreate can make them choppy
+////                .singleUse("2511") // provide a unique ID used to ensure it is only shown once
+////                .show();
+//
+//
+//        // sequence example
+//        ShowcaseConfig config = new ShowcaseConfig();
+//        config.setMaskColor(getActivity().getColor(R.color.text_color_dark_50));
+//        config.setDelay(300); // half second between each showcase view
+//
+//        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(getActivity(), "4");
+//
+//        sequence.setConfig(config);
+//
+//        sequence.addSequenceItem(binding.imageButton3,
+//                "You can sort/filter the sales orders list from here.", "Next >");
+//
+//        sequence.addSequenceItem(binding.button9,
+//                "You can create new sales order by clicking this button.", "Next >");
+//
+////        sequence.addSequenceItem(mButtonTwo,
+////                "This is button two", "GOT IT");
+////
+////        sequence.addSequenceItem(mButtonThree,
+////                "This is button three", "GOT IT");
+//
+//        sequence.start();
+//
+//    }
+
+    public static String round(double value) {
+//        if (places < 0) throw new IllegalArgumentException();
+//
+//        BigDecimal bd = BigDecimal.valueOf(value);
+//        bd = bd.setScale(places, RoundingMode.HALF_UP);
+//        return bd.doubleValue();
+        String val = String.valueOf((double) Math.round(value * 100) / 100);
+
+        return (val.charAt(val.length()-1)) == '0' ? val+"0":val;
+    }
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -115,6 +207,7 @@ public class SaleOrderFragment extends Fragment {
                 showDialog();
             }
         });
+        //startGuide();
         return root;
     }
 
@@ -132,10 +225,8 @@ public class SaleOrderFragment extends Fragment {
                 selectedSpin[0] = i;
                 Log.d("2512", "onItemSelected: "+i);
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-
             }
         });
 
@@ -207,6 +298,7 @@ public class SaleOrderFragment extends Fragment {
         dialog.findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ((ImageButton)getView().findViewById(R.id.imageButton3)).setImageResource(R.drawable.dots);
                 rgFilter.clearCheck();
                 rgSort.clearCheck();
                 dialog.findViewById(R.id.etFilterName).setVisibility(View.GONE);
@@ -238,6 +330,7 @@ public class SaleOrderFragment extends Fragment {
         dialog.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ((ImageButton)getView().findViewById(R.id.imageButton3)).setImageResource(R.drawable.dots_badge);
                 if (selectedTab[0] == 1) {
                     switch (rgSort.getCheckedRadioButtonId()) {
                         case R.id.radioButton:
@@ -292,7 +385,6 @@ public class SaleOrderFragment extends Fragment {
                             break;
                         case R.id.radioButton5:
                             ArrayList<SalesOrder> filterVisitsID = new ArrayList<>();
-
                             for (SalesOrder v: ordersList) {
                                 Log.d("2512", "onClick: Comparing "+v.getOrderName()+" to "+ ((EditText)dialog.findViewById(R.id.etFilterId)).getText().toString());
                                 if(v.getOrderName().toLowerCase().contains(((EditText)dialog.findViewById(R.id.etFilterId)).getText().toString().toLowerCase())){
@@ -300,7 +392,6 @@ public class SaleOrderFragment extends Fragment {
                                 }
                             }
                             SalesOrdersAdapter adapterID = new SalesOrdersAdapter(filterVisitsID, getContext());
-                            adapterID.setHasStableIds(true);
                             rvOrders.setAdapter(adapterID);
                             break;
 
@@ -315,10 +406,10 @@ public class SaleOrderFragment extends Fragment {
                                     st = "Draft";
                                     break;
                                 case "In Progress":
-                                    st = "Final";
+                                    st = "Submitted For Approval";
                                     break;
                                 case "Completed":
-                                    st = "Completed";
+                                    st = "Closed";
                                     break;
                             }
 
@@ -357,10 +448,16 @@ public class SaleOrderFragment extends Fragment {
 
     @Override
     public void onResume() {
-        ordersList.clear();
-        connectSF();
-        getView().findViewById(R.id.progressBar7).setVisibility(View.VISIBLE);
-        getView().findViewById(R.id.rvSalesOrders).setVisibility(View.INVISIBLE);
+
+        if(isFirst || new TinyDB(getContext()).getBoolean("RefreshOrders")) {
+            new TinyDB(getContext()).putBoolean("RefreshOrders", false);
+            new TinyDB(getContext()).putBoolean("CloseNewOrder", false);
+            ordersList.clear();
+            connectSF();
+            getView().findViewById(R.id.progressBar7).setVisibility(View.VISIBLE);
+            getView().findViewById(R.id.rvSalesOrders).setVisibility(View.INVISIBLE);
+            isFirst = false;
+        }
         super.onResume();
     }
 
@@ -392,7 +489,7 @@ public class SaleOrderFragment extends Fragment {
                             e.printStackTrace();
                         }
                         Log.d("2512", ""+client.getClientInfo());
-                        fetchAccountID();
+                        checkUserType();
                        // AsyncTask.execute(new Runnable() {
 //                            @Override
 //                            public void run() {
@@ -405,6 +502,102 @@ public class SaleOrderFragment extends Fragment {
 //                        });
                     }
                 });
+    }
+
+    void checkUserType()  {
+        String soql = null;
+        try {
+            soql = "SELECT Id,name,account.parentId ,contact.AccountId,account.name FROM User where id='"+client1.getJSONCredentials().getString("userId")+"'";
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RestRequest restRequest = null;
+        try {
+            restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //listAdapter.clear();
+                            JSONArray records = result.asJSONObject().getJSONArray("records");
+                            String parentID = records.getJSONObject(0).getJSONObject("Account").getString("ParentId");
+                            Log.d("2513", "parentid: "+parentID);
+                            if(parentID.matches("null")){
+                                fetchAccountID();
+                            }else{
+                                fetchParentID(parentID);
+                            }
+
+                            Log.d("2513", "Check User Type "+result.toString());
+//                            fetchBranches();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getContext(),
+//                                "Unable to connect to Salesforce Server!",
+//                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+    }
+
+    void fetchParentID(String parentID) throws UnsupportedEncodingException {
+        String soql = null;
+        soql = "SELECT Id, Name from Account where Id='"+parentID+"'";
+        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
+
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //listAdapter.clear();
+                            JSONArray records = result.asJSONObject().getJSONArray("records");
+                            dealerID = records.getJSONObject(0).getString("Id");
+                            //dealerName = records.getJSONObject(0).getString("Name");
+                            Log.d("2513", "Parent Info: "+result.toString());
+                            //fetchBranches();
+                            fetchSalesOrders();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getContext(),
+//                                "Unable to connect to Salesforce Server!",
+//                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
     }
 
     private void fetchAccountID(){
@@ -471,14 +664,15 @@ public class SaleOrderFragment extends Fragment {
     }
 
     private void fetchSalesOrders() {
-
+            ordersList.clear();
         try {
 //            String soql = "select Id,Name,State__c,Dealer__r.name,Branch__r.name,Customer__r.name,IssueDate__c,TotalCost__c,Subtotal__c,Tax__c,Discount__c,AdditionalChargeApplied__c,AdditionalDiscountApplied__c from SalesOrder__c where Dealer__c ='"+dealerID+"'";
 //
-            String soql = "select Id,Name,State__c,Status__c,Dealer__r.name,Branch__r.name,Customer__r.name,IssueDate__c,TotalCost__c,Subtotal__c,Tax__c,Discount__c,AdditionalChargeApplied__c,AdditionalDiscountApplied__c,(select Product__c from Sales_Order_Details__r )  from SalesOrder__c where Dealer__c ='"+dealerID+"'";
+            //String soql = "select Id,Name,State__c,Status__c,Dealer__r.name,Branch__r.name,Customer__r.name,IssueDate__c,TotalCost__c,Subtotal__c,Tax__c,Discount__c,AdditionalChargeApplied__c,AdditionalDiscountApplied__c,(select Product__c from Sales_Order_Details__r )  from SalesOrder__c where Dealer__c ='"+dealerID+"' ORDER BY LastModifiedDate Desc";
 
+            String soql = "select Id,Name,State__c,Status__c,Dealer__r.name,Branch__r.name,Customer__r.name,IssueDate__c,TotalCost__c,Subtotal__c,Tax__c,Discount__c,AdditionalChargeApplied__c,AdditionalDiscountApplied__c,(select Product__c from Sales_Order_Details__r ) from SalesOrder__c where Dealer__c ='"+dealerID+"' AND CreatedById = '"+ownerId+"' ORDER BY LastModifiedDate Desc";
             RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(getContext()), soql);
-
+            Log.d("SalesOrdersNew", "Checking for Query :" + soql);
 
             client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
                 @Override
@@ -510,7 +704,7 @@ public class SaleOrderFragment extends Fragment {
                                     String branchName = records.getJSONObject(i).getJSONObject("Branch__r").getString("Name");
                                     String productCount = "0";
 
-                                    if (records.getJSONObject(i).getString("Sales_Order_Details__r") != "null") {
+                                    if (records.getJSONObject(i).has("Sales_Order_Details__r") && records.getJSONObject(i).getString("Sales_Order_Details__r") != "null" ) {
                                         productCount = records.getJSONObject(i).getJSONObject("Sales_Order_Details__r").getString("totalSize");
                                     }
 
@@ -521,7 +715,7 @@ public class SaleOrderFragment extends Fragment {
                                     SalesOrder newOrder = new SalesOrder(orderID,orderName,status,customerName,branchName,date,productCount,totalCost);
 
                                     // TODO: 24-02-2023 Uncomment line below once null date issue is fixed
-                                    if(!newOrder.getDate().equals("null") && checkDate(newOrder.getDate()))ordersList.add(newOrder);
+                                    if(!newOrder.getDate().equals("null") && !newOrder.getTotalCost().equals("null") && checkDate(newOrder.getDate()))ordersList.add(newOrder);
 
 
                                     //ordersList.add(newOrder);
@@ -529,7 +723,7 @@ public class SaleOrderFragment extends Fragment {
                                         case "null":
                                             drafts++;
                                             break;
-                                        case "Completed":
+                                        case "Closed":
                                             completed++;
                                             break;
                                         case "Draft":
@@ -551,14 +745,14 @@ public class SaleOrderFragment extends Fragment {
                                         tvProgress.setText("In Progress ("+ finalInProgress +")");
                                         tvComplete.setText("Complete ("+ finalCompleted +")");
                                         getView().findViewById(R.id.progressBar7).setVisibility(View.INVISIBLE);
-                                        ordersList.sort(new Comparator<SalesOrder>() {
-                                            @Override
-                                            public int compare(SalesOrder salesOrder, SalesOrder t1) {
-                                                return salesOrder.getDate().compareTo(t1.getDate());
-                                            }
-                                        });
-
-                                        Collections.reverse(ordersList);
+//                                        ordersList.sort(new Comparator<SalesOrder>() {
+//                                            @Override
+//                                            public int compare(SalesOrder salesOrder, SalesOrder t1) {
+//                                                return salesOrder.getDate().compareTo(t1.getDate());
+//                                            }
+//                                        });
+//
+//                                        Collections.reverse(ordersList);
                                         SalesOrdersAdapter adapter = new SalesOrdersAdapter(ordersList,getContext());
 
                                         rvOrders.setAdapter(adapter);
@@ -606,7 +800,7 @@ public class SaleOrderFragment extends Fragment {
             newline = newline != -1 ? newline : length;
             do {
                 int end = Math.min(newline, i + 5000);
-                Log.d("2514", message.substring(i, end));
+                Log.d("SalesOrdersNew", message.substring(i, end));
                 i = end;
             } while (i < newline);
         }

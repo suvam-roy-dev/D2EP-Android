@@ -1,10 +1,10 @@
 package com.pwc.d2ep;
 
 public class Product {
-    String name, uom, ID;
+    String name, uom, ID, group;
     double available, allocated, inHand, cost;
 
-    public Product(String name, String ID, String uom, double available, double allocated, double inHand, double cost) {
+    public Product(String name, String ID, String uom, double available, double allocated, double inHand, double cost, String group) {
         this.name = name;
         this.uom = uom;
         this.available = available;
@@ -12,10 +12,15 @@ public class Product {
         this.inHand = inHand;
         this.cost = cost;
         this.ID = ID;
+        this.group = group;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getGroup() {
+        return group;
     }
 
     public String getUom() {
