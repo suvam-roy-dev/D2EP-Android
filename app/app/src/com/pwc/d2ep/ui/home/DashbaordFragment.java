@@ -25,6 +25,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -100,6 +101,7 @@ public class DashbaordFragment extends Fragment {
     private String ownerId;
     private String dealerID;
     String visitsIDS = "(";
+    SwipeRefreshLayout mRefresh;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -1528,6 +1530,18 @@ public class DashbaordFragment extends Fragment {
         bVisits = root.findViewById(R.id.bVisitsDashboard);
         rvVisits = root.findViewById(R.id.rvVisitDashboard);
 
+        mRefresh = root.findViewById(R.id.swiperefresh);
+        mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requireView().findViewById(R.id.progressBar3).setVisibility(View.VISIBLE);
+                requireView().findViewById(R.id.rvVisitDashboard).setVisibility(View.GONE);
+                requireView().findViewById(R.id.constraintLayout).setVisibility(View.GONE);
+                requireView().findViewById(R.id.llDashbaord).setVisibility(View.GONE);
+                connectSF();
+                mRefresh.setRefreshing(false);
+            }
+        });
         bVisits.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

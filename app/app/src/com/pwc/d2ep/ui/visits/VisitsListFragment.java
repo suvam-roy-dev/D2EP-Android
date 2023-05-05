@@ -33,6 +33,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -94,7 +95,10 @@ public class VisitsListFragment extends Fragment {
     Dialog dialog;
     String[] statuses = {"All" ,"Not Started", "In Progress", "Completed"};
 
+    RadioGroup rgSort;
+    RadioGroup rgFilter ;
 
+    SwipeRefreshLayout mRefresh;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,11 +186,6 @@ public class VisitsListFragment extends Fragment {
     void showDialog(){
 
         final int[] selectedTab = {1};
-
-
-
-        RadioGroup rgSort = dialog.findViewById(R.id.rgSort);
-        RadioGroup rgFilter = dialog.findViewById(R.id.rgFilter);
 
         spin = (Spinner) dialog.findViewById(R.id.spinner);
 
@@ -1035,6 +1034,37 @@ public class VisitsListFragment extends Fragment {
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
         //dialog.getWindow().getAttributes().windowAnimations = R.style.animation;
+
+        rgSort = dialog.findViewById(R.id.rgSort);
+        rgFilter = dialog.findViewById(R.id.rgFilter);
+
+        mRefresh = binding.swiperefresh;
+
+        mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        populateView();
+                    }
+                });
+
+                rvVisits.setVisibility(View.GONE);
+                requireView().findViewById(R.id.progressBar5).setVisibility(View.VISIBLE);
+                ((ImageButton)getView().findViewById(R.id.imageButton)).setImageResource(R.drawable.dots);
+
+                rgFilter.clearCheck();
+                rgSort.clearCheck();
+                dialog.findViewById(R.id.etFilterName).setVisibility(View.GONE);
+                dialog.findViewById(R.id.etFilterId).setVisibility(View.GONE);
+
+                ((EditText)dialog.findViewById(R.id.etFilterName)).setText("");
+                ((EditText)dialog.findViewById(R.id.etFilterId)).setText("");
+                selectedSpin[0] = 0;
+                mRefresh.setRefreshing(false);
+            }
+        });
 
         root.findViewById(R.id.imageButton).setOnClickListener(new View.OnClickListener() {
             @Override

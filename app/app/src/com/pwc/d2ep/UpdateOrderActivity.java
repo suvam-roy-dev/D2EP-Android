@@ -26,6 +26,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -43,8 +44,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class UpdateOrderActivity extends AppCompatActivity implements View.OnClickListener {
@@ -61,17 +69,21 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
     String token;
     Product selectedProduct;
     ArrayList<CartProduct> cartProducts;
-    ArrayList<DocCharge> docCharges, previousCharges;
+    ArrayList<DocCharge> docCharges, previousCharges, dealerCharges;
     ArrayList<ProductCharges> combinedCharges;
     ArrayList<ProductCharges> productCharges;
     double totalCost, subtotal, othercharges = 0.0, otherdisc = 0.0;
 
+    String payLoad;
     int qtyToAdd = 1;
     double tax = 0.0,discount = 0.0;
     ActivityResultLauncher<Intent> someActivityResultLauncher;
 
 
     String account_group = "";
+
+    String productPayload = "", productChargesPayload = "";
+    private Dialog dialog_load;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,14 +92,21 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
 
         productList = new ArrayList<>();
         docCharges = new ArrayList<>();
+        dealerCharges = new ArrayList<>();
         previousCharges = new ArrayList<>();
         combinedCharges = new ArrayList<>();
         productCharges = new ArrayList<>();
         orderObject = (OrderObject) getIntent().getParcelableExtra("order");
+        payLoad = getIntent().getStringExtra("payload");
 
         cartProducts = orderObject.products;
-        previousCharges = orderObject.docCharges;
+        previousCharges = getIntent().getParcelableArrayListExtra("docCharges");
         combinedCharges = orderObject.combinedCharges;
+
+        for (int i = 0; i < previousCharges.size(); i++) {
+            Log.d("PreviousCharges", previousCharges.get(i).name + " : "+ previousCharges.get(i).amount);
+        }
+
         setupSF();
         Drawable d = getResources().getDrawable(R.drawable.rounded_appbar_bg,null);
         getSupportActionBar().setBackgroundDrawable(d);
@@ -107,6 +126,13 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
 
+        dialog_load = new Dialog(this);
+
+
+        dialog_load.setContentView(R.layout.dialog_progress);
+        //dialog_load.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog_load.setCancelable(false);
+        dialog_load.setCanceledOnTouchOutside(false);
 
         setTitle(orderObject.orderName);
 
@@ -190,6 +216,26 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
 
+            }
+        });
+
+        findViewById(R.id.button11).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                prepareProductPayload();
+                //prepareChargesPayload();
+                if(cartProducts.size()==0){
+                    Toast.makeText(getApplicationContext(), "Please add at least one product!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //Toast.makeText(getApplicationContext(), "Saving as Draft...", Toast.LENGTH_SHORT).show();
+                dialog_load.show();
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        submitPatch("Draft");
+                    }
+                });
             }
         });
 
@@ -486,67 +532,67 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
         });
     }
 
-    private void getChargeList(String Id) throws UnsupportedEncodingException {
-        String soql = "select Product__r.name, name,Id,ChargeMaster__c, ChargeMaster__r.Description__c, ChargeMaster__r.ChargeType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.AmountType__c from ProductChargeConfiguration__c where Dealer__c='"+orderObject.dealerID+"' and (Product__r.name= null or Product__c='"+Id+"') and Active__c = true AND IsValid__c = true";
-        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(this), soql);
-
-        docCharges.clear();
-        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
-            @Override
-            public void onSuccess(RestRequest request, final RestResponse result) {
-                result.consumeQuietly(); // consume before going back to main thread
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            //listAdapter.clear();
-                            Log.d("2516 Checked for ID: "+Id, "Result :" + result.toString());
-
-                            JSONArray record = result.asJSONObject().getJSONArray("records");
-                            for (int i = 0; i < record.length(); i++) {
-                                String Id =  record.getJSONObject(i).getString("Id");
-                                String chargeID = record.getJSONObject(i).getString("ChargeMaster__c");
-                                JSONObject charge = record.getJSONObject(i).getJSONObject("ChargeMaster__r");
-                                String chargeType = charge.getString("ChargeType__c");
-                                String amountType = charge.getString("AmountType__c");
-                                DocCharge d = new DocCharge(charge.getString("Description__c"),Id,chargeID,true,charge.getDouble("Amount__c"), amountType.matches("Floating"),chargeType.matches("Tax"));
-                                docCharges.add(d);
-                                Log.d("2516 Added doc_charge:", "run: "+charge.toString());
-
-                                if (chargeType.matches("Tax")) {
-                                    othercharges += charge.getDouble("Amount__c");
-                                }else otherdisc += charge.getDouble("Amount__c");
-                            }
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ((TextView)findViewById(R.id.tvTotalCost)).setText("₹ "+String.valueOf(round(comupteTotal(qtyToAdd,selectedProduct.cost,othercharges,otherdisc))));
-                                    ((TextView)findViewById(R.id.tvCharges)).setText(round(othercharges)+"");
-                                    ((TextView)findViewById(R.id.tvDiscount)).setText(round(otherdisc)+"");
-
-                                }
-                            });
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onError(final Exception exception) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        Toast.makeText(getContext(),
-//                                "Unable to connect to Salesforce Server!",
-//                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        });
-    }
+//    private void getChargeList(String Id) throws UnsupportedEncodingException {
+//        String soql = "select Product__r.name, name,Id,ChargeMaster__c, ChargeMaster__r.Description__c, ChargeMaster__r.ChargeType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.AmountType__c from ProductChargeConfiguration__c where Dealer__c='"+orderObject.dealerID+"' and (Product__r.name= null or Product__c='"+Id+"') and Active__c = true AND IsValid__c = true";
+//        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(this), soql);
+//
+//        docCharges.clear();
+//        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+//            @Override
+//            public void onSuccess(RestRequest request, final RestResponse result) {
+//                result.consumeQuietly(); // consume before going back to main thread
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            //listAdapter.clear();
+//                            Log.d("2516 Checked for ID: "+Id, "Result :" + result.toString());
+//
+//                            JSONArray record = result.asJSONObject().getJSONArray("records");
+//                            for (int i = 0; i < record.length(); i++) {
+//                                String Id =  record.getJSONObject(i).getString("Id");
+//                                String chargeID = record.getJSONObject(i).getString("ChargeMaster__c");
+//                                JSONObject charge = record.getJSONObject(i).getJSONObject("ChargeMaster__r");
+//                                String chargeType = charge.getString("ChargeType__c");
+//                                String amountType = charge.getString("AmountType__c");
+//                                DocCharge d = new DocCharge(charge.getString("Description__c"),Id,chargeID,true,charge.getDouble("Amount__c"), amountType.matches("Floating"),chargeType.matches("Tax"));
+//                                docCharges.add(d);
+//                                Log.d("2516 Added doc_charge:", "run: "+charge.toString());
+//
+//                                if (chargeType.matches("Tax")) {
+//                                    othercharges += charge.getDouble("Amount__c");
+//                                }else otherdisc += charge.getDouble("Amount__c");
+//                            }
+//
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    ((TextView)findViewById(R.id.tvTotalCost)).setText("₹ "+String.valueOf(round(comupteTotal(qtyToAdd,selectedProduct.cost,othercharges,otherdisc))));
+//                                    ((TextView)findViewById(R.id.tvCharges)).setText(round(othercharges)+"");
+//                                    ((TextView)findViewById(R.id.tvDiscount)).setText(round(otherdisc)+"");
+//
+//                                }
+//                            });
+//                        } catch (Exception ex) {
+//                            ex.printStackTrace();
+//                        }
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onError(final Exception exception) {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+////                        Toast.makeText(getContext(),
+////                                "Unable to connect to Salesforce Server!",
+////                                Toast.LENGTH_LONG).show();
+//                    }
+//                });
+//            }
+//        });
+//    }
 
     private void getCombinedCharges(Double cost,String productId,String productGroup, String accountGroup) throws UnsupportedEncodingException {
         String soql = "SELECT Name, Id, ChargeMaster__c, Product__c, ProductGroup__r.name, ChargeMaster__r.Amount__c, ChargeMaster__r.ChargeType__c, ChargeMaster__r.Description__c, ChargeMaster__r.AmountType__c FROM ProductChargeConfiguration__c WHERE Active__c = True AND IsValid__c = True AND (Level__c = 'DEALER' OR Level__c = 'OEM') AND ( ((DocumentType__c ='SALES ORDER' OR DocumentType__c =NULL) AND ACCOUNTGroup__c = NULL) OR ((DocumentType__c ='SALES ORDER' OR DocumentType__c =NULL) AND ACCOUNTGroup__c ='"+accountGroup+"')) And (Product__c=null OR Product__c in('"+productId+"')) AND (ProductGroup__c=null or ProductGroup__c in("+productGroup+"))";
@@ -764,6 +810,16 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
                                     //checkUserType();
                                     fetchAccountGroup();
                                     fetchProducts(orderObject.branchID);
+                                    AsyncTask.execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                getChargeList();
+                                            } catch (UnsupportedEncodingException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }
+                                    });
                                 } catch (UnsupportedEncodingException e) {
                                     e.printStackTrace();
                                 }
@@ -862,8 +918,11 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
             case R.id.imageButton5:
                 qtyToAdd++;
                 ((TextView)findViewById(R.id.tvQty)).setText(qtyToAdd+"");
+                ((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+qtyToAdd*(selectedProduct.cost*floatingCharges/100))+"");
+                ((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+qtyToAdd*(selectedProduct.cost*floatingDisc/100))+"");
+
                 ((TextView)findViewById(R.id.tvTotalCost)).setText(""+round(qtyToAdd*(selectedProduct.cost+ (selectedProduct.cost *floatingCharges/100) - (selectedProduct.cost*floatingDisc/100))+ fixedCharges - fixedDisc));
-//
+                //
 //                ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd+"");
 //                ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd*selectedProduct.cost)+"");
 //                ((TextView)dialog.findViewById(R.id.textView76)).setText(round(qtyToAdd*selectedProduct.cost+docCharges.get(0).amount)+"");
@@ -871,8 +930,11 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
             case R.id.imageButton4:
                 if (qtyToAdd>0) qtyToAdd--;
                 ((TextView)findViewById(R.id.tvQty)).setText(qtyToAdd+"");
+                ((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+qtyToAdd*(selectedProduct.cost*floatingCharges/100))+"");
+                ((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+qtyToAdd*(selectedProduct.cost*floatingDisc/100))+"");
+
                 ((TextView)findViewById(R.id.tvTotalCost)).setText(""+round(qtyToAdd*(selectedProduct.cost+ (selectedProduct.cost *floatingCharges/100) - (selectedProduct.cost*floatingDisc/100))+ fixedCharges - fixedDisc));
-//                ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd+"");
+                //                ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd+"");
 //                ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd*selectedProduct.cost)+"");
 //                ((TextView)dialog.findViewById(R.id.textView76)).setText(round(qtyToAdd*selectedProduct.cost+docCharges.get(0).amount)+"");
                 break;
@@ -962,6 +1024,11 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
         ((TextView)dialog.findViewById(R.id.textView47)).setText(selectedProduct.UOM);
         ((EditText)dialog.findViewById(R.id.editText)).setText(round(selectedProduct.salesPrice)+"");
         ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd*selectedProduct.salesPrice)+"");
+
+
+        dialog.findViewById(R.id.textView55).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText2).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView71).setVisibility(View.GONE);
 
         dialog.findViewById(R.id.textView63).setVisibility(View.GONE);
         dialog.findViewById(R.id.editText3).setVisibility(View.GONE);
@@ -1055,6 +1122,12 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
                     ((EditText)dialog.findViewById(R.id.editText2)).setText(round(productCharges.get(i).chargeValue)+"");
                     double total = productCharges.get(i).chargeValueType.equals("Fixed") ? productCharges.get(i).chargeValue : qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
                     ((TextView)dialog.findViewById(R.id.textView71)).setText(round(total)+"");
+
+                    dialog.findViewById(R.id.textView55).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.editText2).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.textView71).setVisibility(View.VISIBLE);
+
+
                     break;
                 case 1:
                     ((TextView)dialog.findViewById(R.id.textView63)).setText(productCharges.get(i).chargeName+ (productCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
@@ -2390,5 +2463,257 @@ public class UpdateOrderActivity extends AppCompatActivity implements View.OnCli
         String val = String.valueOf((double) Math.round(value * 100) / 100);
 
         return ((val.charAt(val.length()-1)) == '0' || (val.charAt(val.length()-2)) == '.') ? val+"0":val;
+    }
+
+    void prepareProductPayload() {
+        for (int i = 0; i < cartProducts.size(); i++) {
+            productPayload += "{\n" +
+                    "            \"Id\":" + (cartProducts.get(i).pID == null ? null : "\"" + cartProducts.get(i).pID + "\"") + ",\n" +
+                    "            \"productId\": \"" + cartProducts.get(i).ID + "\",\n" +
+                    "            \"uOMId\": \"a0H3h000001T3KwEAK\",\n" +
+                    "            \"isDelete\": false,\n" +
+                    "            \"quantity\": " + (double) cartProducts.get(i).qty + ",\n" +
+                    "            \"status\": \"Open\",\n" +
+                    "            \"allocatedQuantity\": 0.00,\n" +
+                    "            \"salesPrice\": " + cartProducts.get(i).salesPrice + ",\n" +
+                    "            \"discount\": " + cartProducts.get(i).discount + ",\n" +
+                    "            \"tax\": " + cartProducts.get(i).tax + "\n" +
+                    "        }";
+            productPayload += ",";
+
+            for (int j = 0; j < cartProducts.get(i).charges.size(); j++) {
+                productChargesPayload += "{\n" +
+                        "            \"Id\":"+ (cartProducts.get(i).charges.get(j).id == null ? null : "\""+cartProducts.get(i).charges.get(j).id+"\"") +",\n" +
+                        "            \"productId\": \""+cartProducts.get(i).pID+"\",\n" +
+                        "            \"ChargeName\": \""+cartProducts.get(i).charges.get(j).chargeName+"\",\n" +
+                        "            \"ChargeMaster\": \""+cartProducts.get(i).charges.get(j).chargeMaster+"\",\n" +
+                        "            \"ChargeValue\": "+cartProducts.get(i).charges.get(j).chargeValue+",\n" +
+                        "            \"ChargeValueType\": \""+cartProducts.get(i).charges.get(j).chargeValueType+"\",\n" +
+                        "            \"ChargeType\": \""+cartProducts.get(i).charges.get(j).chargeType+"\",\n" +
+                        "            \"TransactionAccount\": \""+cartProducts.get(i).charges.get(j).transactionAccount+"\",\n" +
+                        "            \"Amount\": "+cartProducts.get(i).charges.get(j).amount+"\n" +
+                        "        }";
+                productChargesPayload += ",";
+            }
+        }
+
+        productPayload = productPayload.substring(0, productPayload.length() - 1);
+        productChargesPayload = productChargesPayload.substring(0, productChargesPayload.length() - 1);
+        Log.d("2515", "prepareProductPayload: " + productPayload);
+    }
+
+    private void getChargeList() throws UnsupportedEncodingException {
+
+        dealerCharges.clear();
+
+        String soql = "SELECT ID, ChargeMaster__c, AccountGroup__c, ChargeMaster__r.Description__c, ChargeMaster__r.AmountType__c, ChargeMaster__r.Amount__c, ChargeMaster__r.ChargeType__c, Dealer__c, DocumentType__c, Active__c, IsValid__c, Level__c FROM DocumentChargeConfig__c where  Active__c = true AND IsValid__c = true\n" +
+                "and (DocumentType__c=null or DocumentType__c='SALES ORDER')";
+        RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(this), soql);
+        client1.sendAsync(restRequest, new RestClient.AsyncRequestCallback() {
+            @Override
+            public void onSuccess(RestRequest request, final RestResponse result) {
+                result.consumeQuietly(); // consume before going back to main thread
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //listAdapter.clear();
+                            Log.d("2516", "Result :" + result.toString());
+
+                            JSONArray record = result.asJSONObject().getJSONArray("records");
+                            for (int i = 0; i < record.length(); i++) {
+
+                                JSONObject charge = record.getJSONObject(i).getJSONObject("ChargeMaster__r");
+                                String desc = charge.getString("Description__c");
+
+                                String type =  charge.getString("AmountType__c");
+                                String cType =  charge.getString("ChargeType__c");
+
+                                String id = record.getJSONObject(i).getString("Id");
+
+                                String masterid = "";
+                                if (record.getJSONObject(i).has("ChargeMaster__c")) {
+                                    masterid = record.getJSONObject(i).getString("ChargeMaster__c");
+                                }
+                                double val = 0.0;
+                                if (charge.has("Amount__c")) {
+                                    val = charge.getDouble("Amount__c");
+                                }
+
+
+                                DocCharge docCharge = new DocCharge(desc, id, masterid, true, val,type.matches("Floating") ? true : false,cType.matches("Tax") ? true : false);//, type.matches("Floating") ? true : false);
+                                dealerCharges.add(docCharge);
+                            }
+
+                        } catch (Exception ex) {
+                            Log.d("2516", "Result :" + ex.getLocalizedMessage());
+
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(final Exception exception) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getContext(),
+//                                "Unable to connect to Salesforce Server!",
+//                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+    }
+
+//    void prepareChargesPayload() {
+//        //CheckBox[] boxes = {findViewById(R.id.checkBox),findViewById(R.id.checkBox3),findViewById(R.id.checkBox4),findViewById(R.id.checkBox5),findViewById(R.id.checkBox6)};
+//
+//        for (int i = 0; i < dealerCharges.size(); i++) {
+//            docPayload += "        {\n" +
+//                    "            \"Id\": \"" + dealerCharges.get(i).id + "\",\n" +
+//                    "\t\t\t\"ChargeMaster\": \"" + dealerCharges.get(i).masterID + "\",\n" +
+//                    "            \"ChargeType\": " + (dealerCharges.get(i).isTax ? "\"Tax\"" : "\"Discount\"") + ",\n" +
+//                    "            \"Amount\": " + dealerCharges.get(i).amount + ",\n" +
+//                    "            \"AmountType\":"+(dealerCharges.get(i).isFloating ?"\"Floating\"":"\"Fixed\"")+",\n" +
+//                    "            \"IsApplied\": \""+(previousCharges.get(i).isApplied ? "Yes" : "No")+"\",\n" +
+//                    "            \"Description\": \"" + dealerCharges.get(i).name + "\",\n" +
+//                    "            \"Value\": " + dealerCharges.get(i).amount + "\n" +
+//                    "        }";
+//            docPayload += ",";
+//        }
+//
+//        docPayload = docPayload.substring(0, docPayload.length() - 1);
+//        Log.d("2515", "prepareDocPayload: " + docPayload);
+//    }
+
+    private void submitPatch(String orderID) {
+        String payload = payLoad.replace(orderObject.narration,((EditText)findViewById(R.id.editTextTextMultiLine)).getText().toString());
+
+
+        Log.d("2515", "submitOrder: " + payload);
+        Log.d("2515", "submitPatch: Trying to update order Id:" + orderObject.orderID);
+        final MediaType JSON
+                = MediaType.get("application/json; charset=utf-8");
+
+        OkHttpClient client = new OkHttpClient();
+
+        RequestBody body = RequestBody.create(payload, JSON);
+        Request request = new Request.Builder()
+                .url("https://dms-dev-ed.my.salesforce.com/services/apexrest/DemoService/")
+                .addHeader("Authorization", "Bearer " + token)
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Log.d("2515", response.body().string());
+            Log.d("2515", response.toString());
+            //new TinyDB(getApplicationContext()).putBoolean("CloseNewOrder", true);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (orderID) {
+                        case "Draft":
+                            Toast.makeText(getApplicationContext(), "Order saved as Draft!", Toast.LENGTH_SHORT).show();
+                            break;
+                        case "Submitted For Approval":
+                            Toast.makeText(getApplicationContext(), "Order submitted for approval!", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            });
+            new TinyDB(this).putBoolean("RefreshOrders", true);
+            new TinyDB(this).putBoolean("CloseNewOrder", true);
+            dialog_load.dismiss();
+            finish();
+        } catch (IOException e) {
+            Log.d("2515", "submitPatch: " + e);
+            e.printStackTrace();
+        }
+    }
+
+    private double getTotal(double subtotal, double tax, double discount, double otherCost) {
+        //totalCost = subtotal + tax - discount + otherCost;
+        return Double.parseDouble(round(subtotal + tax - discount + otherCost));
+    }
+
+    private String getSubtotal(ArrayList<CartProduct> products) {
+        double cost = 0;
+        for (int i = 0; i < products.size(); i++) {
+            cost += products.get(i).salesPrice * products.get(i).qty;
+        }
+        // subtotal = cost;
+        return round(cost);
+    }
+
+    private String getTax(ArrayList<CartProduct> products) {
+        double cost = 0;
+
+        Log.d("TAX", "Checking for number: "+ products.size());
+        for (int i = 0; i < products.size(); i++) {
+            double fixedCharges = 0.0;
+            double floatingCharges = 0.0;
+            Log.d("TAX", "Charges for Product : "+ products.get(i).name);
+            for (int j = 0; j < products.get(i).charges.size(); j++) {
+                Log.d("TAX", "Adding Tax: "+products.get(i).charges.get(j).chargeName +" of "+products.get(i).charges.get(j).chargeValue);
+                if(products.get(i).charges.get(j).chargeType.equals("Tax")){
+                    if(products.get(i).charges.get(j).chargeValueType.equals("Fixed")){
+                        fixedCharges += products.get(i).charges.get(j).chargeValue;
+                    } else floatingCharges += products.get(i).charges.get(j).chargeValue;
+                }
+                //Log.d("TAX", "Added Tax: "+(products.get(i).qty*products.get(i).salesPrice* floatingCharges/100) + fixedCharges);
+            }
+            cost +=  (products.get(i).qty*products.get(i).salesPrice* floatingCharges/100) + fixedCharges;
+        }
+        // tax = cost;
+        Log.d("TAX", "Total Tax: "+cost);
+        return round(cost);
+    }
+
+    private String getDiscount(ArrayList<CartProduct> products) {
+        double cost = 0;
+        for (int i = 0; i < products.size(); i++) {
+
+
+
+            for (int j = 0; j < products.get(i).charges.size(); j++) {
+                double fixedDisc = 0.0;
+                double floatingDisc = 0.0;
+                if(!products.get(i).charges.get(j).chargeType.equals("Tax")){
+                    if(products.get(i).charges.get(j).chargeValueType.equals("Fixed")){
+                        fixedDisc += products.get(i).charges.get(j).chargeValue;
+                    } else floatingDisc += products.get(i).charges.get(j).chargeValue;
+                }
+                cost += (products.get(i).qty*products.get(i).salesPrice* floatingDisc/100) + fixedDisc;
+            }
+        }
+        // disc = cost;
+        return round(cost);
+    }
+
+    private String getAddDiscount() {
+        double cost = 0;
+        for (int i = 0; i < dealerCharges.size(); i++) {
+            //View[] views = {findViewById(R.id.checkBox), findViewById(R.id.checkBox3), findViewById(R.id.checkBox4), findViewById(R.id.checkBox5), findViewById(R.id.checkBox6)};
+            if (previousCharges.get(i).isApplied && !dealerCharges.get(i).isTax) {
+                cost += dealerCharges.get(i).amount;
+            }
+        }
+        return round(cost);
+    }
+
+    private String getAddCost() {
+        double cost = 0;
+        //View[] views = {findViewById(R.id.checkBox), findViewById(R.id.checkBox3), findViewById(R.id.checkBox4), findViewById(R.id.checkBox5), findViewById(R.id.checkBox6)};
+
+        for (int i = 0; i < dealerCharges.size(); i++) {
+            if (previousCharges.get(i).isApplied && dealerCharges.get(i).isTax) {
+                cost += dealerCharges.get(i).amount;
+            }
+        }
+        return round(cost);
     }
 }

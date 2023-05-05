@@ -82,7 +82,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
     Dialog dialog;
     String token;
     Product selectedProduct;
-    ArrayList<CartProduct> cartProducts;
+    ArrayList<CartProduct> cartProducts, removedProducts;
     ArrayList<DocCharge> docCharges;
     ArrayList<ProductCharges> productCharges;
     ArrayList<ProductCharges> combinedCharges;
@@ -105,6 +105,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
         customerList = new ArrayList<>();
         productList = new ArrayList<>();
         cartProducts = new ArrayList<>();
+        removedProducts = new ArrayList<>();
         docCharges = new ArrayList<>();
         productCharges = new ArrayList<>();
         combinedCharges = new ArrayList<>();
@@ -291,15 +292,20 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                     Toast.makeText(getApplicationContext(),"Please add at least 1 product!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(getApplicationContext(), "Saving as Draft...", Toast.LENGTH_SHORT).show();
-                AsyncTask.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        prepareChargesPayload();
-                        prepareProductPayload();
-                        submitPatch("Draft");
-                    }
-                });
+                Toast.makeText(getApplicationContext(), "Kindly validate all the order details.", Toast.LENGTH_SHORT).show();
+//                AsyncTask.execute(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        prepareChargesPayload();
+//                        prepareProductPayload();
+//                        submitPatch("Draft");
+//                    }
+//                });
+                OrderObject orderObject =  new OrderObject("","",dealerName, dealerID,branchName, branchID,customerName, customerID,state,narration,cartProducts,null, combinedCharges);
+
+                Intent i = new Intent(getApplicationContext(),CartActivity.class);
+                i.putExtra("order",orderObject);
+                someActivityResultLauncher.launch(i);
             }
         });
 
@@ -336,6 +342,8 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             Intent data = result.getData();
 
                             cartProducts = (ArrayList<CartProduct>) data.getSerializableExtra("order");
+                            //removedProducts = (ArrayList<CartProduct>) data.getSerializableExtra("removed");
+
                             setBadgeCount(getApplicationContext(), itemCart, String.valueOf(cartProducts.size()));
                         }
                     }
@@ -658,6 +666,11 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
         ((EditText)dialog.findViewById(R.id.editText)).setText(round(selectedProduct.salesPrice,2)+"");
         ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd*selectedProduct.salesPrice,2)+"");
 
+
+        dialog.findViewById(R.id.textView55).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText2).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView71).setVisibility(View.GONE);
+
         dialog.findViewById(R.id.textView63).setVisibility(View.GONE);
         dialog.findViewById(R.id.editText3).setVisibility(View.GONE);
         dialog.findViewById(R.id.textView72).setVisibility(View.GONE);
@@ -750,6 +763,10 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                     ((EditText)dialog.findViewById(R.id.editText2)).setText(round(productCharges.get(i).chargeValue,2)+"");
                     double total = productCharges.get(i).chargeValueType.equals("Fixed") ? productCharges.get(i).chargeValue : qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
                     ((TextView)dialog.findViewById(R.id.textView71)).setText(round(total,2)+"");
+
+                    dialog.findViewById(R.id.textView55).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.editText2).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.textView71).setVisibility(View.VISIBLE);
                     break;
                 case 1:
                     ((TextView)dialog.findViewById(R.id.textView63)).setText(productCharges.get(i).chargeName+ (productCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
@@ -891,7 +908,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             if (productCharges.get(i).chargeType.equals("Tax")){
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedCharge += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedCharge;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -899,7 +916,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             } else{
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedDiscount += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedDiscount;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingDiscount += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -912,7 +929,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             if (productCharges.get(i).chargeType.equals("Tax")){
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedCharge += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedCharge;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingCharge += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -920,7 +937,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             } else{
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedDiscount += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedDiscount;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingDiscount += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -932,7 +949,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             if (productCharges.get(i).chargeType.equals("Tax")){
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedCharge += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedCharge;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingCharge += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -940,7 +957,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             } else{
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedDiscount += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedDiscount;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingDiscount += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -952,7 +969,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             if (productCharges.get(i).chargeType.equals("Tax")){
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedCharge += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedCharge;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingCharge += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -960,7 +977,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             } else{
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedDiscount += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedDiscount;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingDiscount += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -972,7 +989,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             if (productCharges.get(i).chargeType.equals("Tax")){
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedCharge += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedCharge;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingCharge += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -980,7 +997,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                             } else{
                                 if(productCharges.get(i).chargeValueType.equals("Fixed")){
                                     fixedDiscount += productCharges.get(i).chargeValue;
-                                    productCharges.get(i).amount = fixedDiscount;
+                                    productCharges.get(i).amount = productCharges.get(i).chargeValue;;
                                 } else {
                                     floatingDiscount += productCharges.get(i).chargeValue;
                                     productCharges.get(i).amount = qtyToAdd * selectedProduct.salesPrice * productCharges.get(i).chargeValue/100;
@@ -1494,7 +1511,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                                 DocCharge d = new DocCharge(charge.getString("Description__c"),Id,chargeID,true,amount, amountType.matches("Floating"),chargeType.matches("Tax"));
                                 docCharges.add(d);
 
-                                ProductCharges p = new ProductCharges(null, selectedProduct.ID,charge.getString("Description__c"),chargeID,amountType,chargeType,transactionID,charge.getDouble("Amount__c"),charge.getDouble("Amount__c"));
+                                ProductCharges p = new ProductCharges(null, selectedProduct.ID,charge.getString("Description__c"),chargeID,amountType,chargeType,transactionID,charge.getDouble("Amount__c"),amount);
                                 productCharges.add(p);
 
                                 Log.d("2516 Added doc_charge:", "run: "+charge.toString());
@@ -2101,7 +2118,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
 
             Intent i = new Intent(getApplicationContext(),CartActivity.class);
             i.putExtra("order",orderObject);
-
+            //i.putParcelableArrayListExtra("removed",removedProducts);
             if (customerID == null){
                 Toast.makeText(this,"Please select a customer!", Toast.LENGTH_SHORT).show();
                 return true;
@@ -2150,8 +2167,8 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                 //((TextView)findViewById(R.id.tvSalesPrice)).setText(round(selectedProduct.cost,2)+"");
 //                updateProducts();
 //                setCharges();
-                //((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+(selectedProduct.cost*floatingCharges/100),2)+"");
-                //((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+(selectedProduct.cost*floatingDisc/100),2)+"");
+                ((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+qtyToAdd*(selectedProduct.cost*floatingCharges/100),2)+"");
+                ((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+qtyToAdd*(selectedProduct.cost*floatingDisc/100),2)+"");
 
                 ((TextView)findViewById(R.id.tvTotalCost)).setText(""+round(qtyToAdd*(selectedProduct.cost+ (selectedProduct.cost *floatingCharges/100) - (selectedProduct.cost*floatingDisc/100))+ fixedCharges - fixedDisc,2));
                 break;
@@ -2161,8 +2178,8 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                 //((TextView)findViewById(R.id.tvSalesPrice)).setText(round(selectedProduct.cost,2)+"");
 //                updateProducts();
 //                setCharges();
-                //((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+(selectedProduct.cost*floatingCharges/100),2)+"");
-                //((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+(selectedProduct.cost*floatingDisc/100),2)+"");
+                ((TextView)findViewById(R.id.tvCharges)).setText(round(fixedCharges+qtyToAdd*(selectedProduct.cost*floatingCharges/100),2)+"");
+                ((TextView)findViewById(R.id.tvDiscount)).setText(round(fixedDisc+qtyToAdd*(selectedProduct.cost*floatingDisc/100),2)+"");
 
                 ((TextView)findViewById(R.id.tvTotalCost)).setText(""+round(qtyToAdd*(selectedProduct.cost+ (selectedProduct.cost *floatingCharges/100) - (selectedProduct.cost*floatingDisc/100))+ fixedCharges - fixedDisc,2));
                 break;
@@ -2180,7 +2197,9 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                 }
 
                 for (int i = 0; i < productCharges.size(); i++) {
-                    ProductCharges p = new ProductCharges(productCharges.get(i).id,productCharges.get(i).productId,productCharges.get(i).chargeName,productCharges.get(i).chargeMaster,productCharges.get(i).chargeValueType,productCharges.get(i).chargeType,productCharges.get(i).transactionAccount,productCharges.get(i).chargeValue,productCharges.get(i).amount);
+                    double amount = productCharges.get(i).chargeValueType.equals("Fixed") ? productCharges.get(i).amount : qtyToAdd * selectedProduct.cost* (productCharges.get(i).chargeValue)/100;
+
+                    ProductCharges p = new ProductCharges(productCharges.get(i).id,productCharges.get(i).productId,productCharges.get(i).chargeName,productCharges.get(i).chargeMaster,productCharges.get(i).chargeValueType,productCharges.get(i).chargeType,productCharges.get(i).transactionAccount,productCharges.get(i).chargeValue,amount);
                     combinedCharges.add(p);
                 }
 
@@ -2209,9 +2228,9 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                     "            \"Amount\": "+combinedCharges.get(j).amount+"\n" +
                     "        }";
             productChargesPayload += ",";
-            productChargesPayload = productChargesPayload.substring(0,productChargesPayload.length()-1);
 
         }
+        productChargesPayload = productChargesPayload.substring(0,productChargesPayload.length()-1);
 
         //Log.d("2515", "prepareProductPayload: "+productPayload);
     }
@@ -2238,6 +2257,7 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void submitPatch(String orderID) {
+        double zero = 0.0;
         String payload = "{\n" +
                 "   \n" +
                 "    \"salesOrderTransactionChargeLst\": [\n" +
@@ -2258,16 +2278,16 @@ public class NewOrderActivity extends AppCompatActivity implements View.OnClickL
                 "            \"Narration\": \""+narration+"\",\n" +
                 "            \"BranchId\": \""+branchID+"\",\n" +
                 "            \"CustomerId\": \""+customerID+"\",\n" +
-                "            \"TotalCost\": "+getTotal(subtotal,tax,disc,0.0)+",\n" +
-                "            \"Subtotal\": "+subtotal+",\n" +
+                "            \"TotalCost\": "+getTotal(getSubtotal(cartProducts),getTax(cartProducts),getDiscount(cartProducts),0.0)+",\n" +
+                "            \"Subtotal\": "+getSubtotal(cartProducts)+",\n" +
                 "            \"Tax\": "+getTax(cartProducts)+",\n" +
                 "            \"Discount\": "+getDiscount(cartProducts)+",\n" +
-                "            \"AdditionalChargeApplied\": 1.0,\n" +
-                "            \"AdditionalDiscountApplied\": 10.00\n" +
+                "            \"AdditionalChargeApplied\": "+zero+",\n" +
+                "            \"AdditionalDiscountApplied\": "+zero+"\n" +
                 "        }\n" +
                 "}";
 
-//        Log.d("2515", "submitOrder: "+payload);
+        Log.d("2515", "submitOrder: "+payload);
 //        Log.d("2515", "submitPatch: Trying to update order Id:"+ orderObject.orderID);
         final MediaType JSON
                 = MediaType.get("application/json; charset=utf-8");

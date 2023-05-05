@@ -45,13 +45,38 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         //final SalesOrder myListData = visits.get(position);
+        double fixedCharges = 0.0;
+        double floatingCharges = 0.0;
+        double fixedDisc = 0.0;
+        double floatingDisc = 0.0;
+
+        CartProduct selectedProduct = visits.get(position);
+        for (int j = 0; j < selectedProduct.charges.size(); j++) {
+            if(selectedProduct.charges.get(j).chargeType.equals("Tax")){
+                if(selectedProduct.charges.get(j).chargeValueType.equals("Fixed")){
+                    fixedCharges += selectedProduct.charges.get(j).chargeValue;
+                } else floatingCharges += selectedProduct.charges.get(j).chargeValue;
+            } else{
+                if(selectedProduct.charges.get(j).chargeValueType.equals("Fixed")){
+                    fixedDisc += selectedProduct.charges.get(j).chargeValue;
+                } else floatingDisc += selectedProduct.charges.get(j).chargeValue;
+            }
+        }
+
+        double finalFloatingCharges = floatingCharges;
+        double finalFloatingDisc = floatingDisc;
+        double finalFixedDisc = fixedDisc;
+        double finalFixedCharges = fixedCharges;
+
         holder.tvName.setText(visits.get(position).name);
         holder.tvQty.setText(visits.get(position).qty+"");
         holder.tvUOM.setText(visits.get(position).UOM);
         holder.tvSalePrice.setText(round(visits.get(position).salesPrice)+"");
-        holder.tvTax.setText(round(visits.get(position).tax)+"");
+        holder.tvTax.setText(round((visits.get(position).qty*visits.get(position).salesPrice*finalFloatingCharges/100)+finalFixedCharges)+"");
+        holder.tvDisc.setText(round((visits.get(position).qty*visits.get(position).salesPrice*finalFloatingDisc/100)+finalFixedDisc)+"");
         holder.tvTotal.setText(round(visits.get(position).total)+"");
-        holder.tvDisc.setText(round(visits.get(position).discount));
+
+        //holder.tvDisc.setText(round(visits.get(position).discount));
     }
 
     @Override
@@ -93,8 +118,80 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                 ((ImageView) itemView.findViewById(R.id.imageView8)).setImageTintList(ColorStateList.valueOf(c.getColor(R.color.disbaled_color)));
 
             }
+
+            itemView.findViewById(R.id.imageButton4).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    reduceQty(visits.get(getAdapterPosition()),false);
+                }
+            });
+
+            itemView.findViewById(R.id.imageButton5).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    reduceQty(visits.get(getAdapterPosition()),true);
+                }
+            });
         }
     }
+
+    private void reduceQty(CartProduct selectedProduct, boolean add){
+
+
+        ArrayList<ProductCharges> thisCharges = selectedProduct.charges;
+
+
+        final int[] qtyToAdd = {selectedProduct.qty};
+
+        if(add) {
+            qtyToAdd[0]++;
+        }else {
+            if (qtyToAdd[0] > 1){
+                qtyToAdd[0]--;
+            }else {
+                return;
+            }
+        }
+
+        double fixedCharge = 0;
+        double floatingCharge = 0;
+        double fixedDiscount = 0;
+        double floatingDiscount = 0;
+
+        for (int i = 0; i < thisCharges.size(); i++) {
+                    if (thisCharges.get(i).chargeType.equals("Tax")) {
+                        if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
+                            fixedCharge += thisCharges.get(i).chargeValue;
+                            thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
+                        } else {
+                            floatingCharge += thisCharges.get(i).chargeValue;
+                            thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
+                        }
+                    } else {
+                        if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
+                            fixedDiscount += thisCharges.get(i).chargeValue;
+                            thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
+                        } else {
+                            floatingDiscount += thisCharges.get(i).chargeValue;
+                            thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
+                        }
+                    }
+        }
+
+        selectedProduct.qty = qtyToAdd[0];
+        selectedProduct.tax = fixedCharge + (qtyToAdd[0]*selectedProduct.salesPrice*floatingCharge/100);
+        selectedProduct.discount = fixedDiscount + (qtyToAdd[0]*selectedProduct.salesPrice*floatingDiscount/100);
+        selectedProduct.total = qtyToAdd[0]*(selectedProduct.salesPrice+ (selectedProduct.salesPrice*floatingCharge/100) - (selectedProduct.salesPrice*floatingDiscount/100))+ fixedCharge - fixedDiscount;
+
+        for (int i = 0; i < visits.size(); i++) {
+            if (selectedProduct.name.matches(visits.get(i).name)) {
+                //cartProducts.remove(i);
+                visits.set(i, selectedProduct);
+                break;
+            }
+        }
+        notifyDataSetChanged();
+        }
 
     private void showEditDialog(CartProduct selectedProduct) {
 
@@ -232,8 +329,8 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                 if (qtyToAdd[0] >1) qtyToAdd[0]--;
                 ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd[0] +"");
                 //((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd[0] *changedPrice[0])+"");
-//                ((TextView)dialog.findViewById(R.id.textView71)).setText(round(qtyToAdd[0] *changedCharge[0])+"");
-//                ((TextView)dialog.findViewById(R.id.textView72)).setText(round(qtyToAdd[0] *changedDisc[0])+"");
+                ((TextView)dialog.findViewById(R.id.textView71)).setText(round((qtyToAdd[0]*changedPrice[0]*finalFloatingCharges/100)+finalFixedCharges)+"");
+                ((TextView)dialog.findViewById(R.id.textView72)).setText(round((qtyToAdd[0]*changedPrice[0]*finalFloatingDisc/100)+finalFixedDisc)+"");
 
                 ((TextView)dialog.findViewById(R.id.textView76)).setText(round(qtyToAdd[0]*(changedPrice[0]+ (changedPrice[0]*finalFloatingCharges/100) - (changedPrice[0]*finalFloatingDisc/100))+ finalFixedCharges - finalFixedDisc)+"");
 
@@ -245,10 +342,9 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                 qtyToAdd[0]++;
                 ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd[0] +"");
 //                ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd[0] *changedPrice[0])+"");
-//                ((TextView)dialog.findViewById(R.id.textView71)).setText(round(qtyToAdd[0] *changedCharge[0])+"");
-//                ((TextView)dialog.findViewById(R.id.textView72)).setText(round(qtyToAdd[0] *changedDisc[0])+"");
+                ((TextView)dialog.findViewById(R.id.textView71)).setText(round((qtyToAdd[0]*changedPrice[0]*finalFloatingCharges/100)+finalFixedCharges)+"");
+                ((TextView)dialog.findViewById(R.id.textView72)).setText(round((qtyToAdd[0]*changedPrice[0]*finalFloatingDisc/100)+finalFixedDisc)+"");
                 ((TextView)dialog.findViewById(R.id.textView76)).setText(round(qtyToAdd[0]*(changedPrice[0]+ (changedPrice[0]*finalFloatingCharges/100) - (changedPrice[0]*finalFloatingDisc/100))+ finalFixedCharges - finalFixedDisc)+"");
-
             }
         });
 
@@ -259,9 +355,25 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
         ((EditText)dialog.findViewById(R.id.editText)).setText(round(selectedProduct.salesPrice)+"");
         ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd[0] *selectedProduct.salesPrice)+"");
 
+        dialog.findViewById(R.id.textView55).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText2).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView71).setVisibility(View.GONE);
+
         dialog.findViewById(R.id.textView63).setVisibility(View.GONE);
         dialog.findViewById(R.id.editText3).setVisibility(View.GONE);
         dialog.findViewById(R.id.textView72).setVisibility(View.GONE);
+
+        dialog.findViewById(R.id.textView64).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText4).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView73).setVisibility(View.GONE);
+
+        dialog.findViewById(R.id.textView65).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText5).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView74).setVisibility(View.GONE);
+
+        dialog.findViewById(R.id.textView69).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText8).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView75).setVisibility(View.GONE);
 
         double  docTotal = 0.0;
         for (int i = 0; i < thisCharges.size(); i++) {
@@ -272,6 +384,10 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                     ((EditText)dialog.findViewById(R.id.editText2)).setText(round(thisCharges.get(i).chargeValue)+"");
                     double total = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
                     ((TextView)dialog.findViewById(R.id.textView71)).setText(round(total)+"");
+
+                    dialog.findViewById(R.id.textView55).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.editText2).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.textView71).setVisibility(View.VISIBLE);
                     break;
                 case 1:
                     ((TextView)dialog.findViewById(R.id.textView63)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
@@ -458,7 +574,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -466,7 +582,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -479,7 +595,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -487,7 +603,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -499,7 +615,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -507,7 +623,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -519,7 +635,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -527,7 +643,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -539,7 +655,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -547,7 +663,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -560,8 +676,8 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
                 selectedProduct.charges = thisCharges;
                 selectedProduct.salesPrice = cost;
                 selectedProduct.qty = qtyToAdd[0];
-                selectedProduct.tax = fixedCharge + floatingCharge;
-                selectedProduct.discount = fixedDiscount + floatingDiscount;
+                selectedProduct.tax = fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100);
+                selectedProduct.discount = fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100);
                 selectedProduct.total = qtyToAdd[0]*(cost+ (cost*floatingCharge/100) - (cost*floatingDiscount/100))+ fixedCharge - fixedDiscount;
 
                 for (int i = 0; i < visits.size(); i++) {
@@ -584,7 +700,7 @@ public class CartProductAdapter extends RecyclerView.Adapter<CartProductAdapter.
 
     public static String round(double value) {
         String val = String.valueOf((double) Math.round(value * 100) / 100);
-        return (val.charAt(val.length()-1)) == '0' ? val+"0":val;
+        return ((val.charAt(val.length()-1)) == '0' || (val.charAt(val.length()-2)) == '.') ? val+"0":val;
     }
 
     public ArrayList<CartProduct> getUpdatedList(){

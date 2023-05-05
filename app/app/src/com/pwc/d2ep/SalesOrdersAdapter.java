@@ -47,7 +47,7 @@ public class SalesOrdersAdapter extends RecyclerView.Adapter<SalesOrdersAdapter.
 //        return bd.doubleValue();
         String val = String.valueOf((double) Math.round(value * 100) / 100);
 
-        return (val.charAt(val.length()-1)) == '0' ? val+"0":val;
+        return ((val.charAt(val.length()-1)) == '0' || (val.charAt(val.length()-2)) == '.') ? val+"0":val;
     }
 
     @Override

@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.pwc.d2ep"
     android:installLocation="internalOnly"
-    android:versionCode="16"
-    android:versionName="3.1.1">
+    android:versionCode="17"
+    android:versionName="3.1.2">
     <!--
         GCM permission to ensure that only this application can
         receive the messages and registration result. This must be of

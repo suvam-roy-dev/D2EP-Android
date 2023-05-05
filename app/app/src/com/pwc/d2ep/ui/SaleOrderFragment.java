@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -85,6 +86,9 @@ public class SaleOrderFragment extends Fragment {
     ArrayAdapter aa;
     ArrayList<SalesOrder> ordersList;
     String[] statuses = {"All" ,"Draft", "In Progress", "Completed"};
+    SwipeRefreshLayout mRefresh;
+    RadioGroup rgSort;
+    RadioGroup rgFilter;
 
     boolean isFirst = true;
 //    void startGuide(){
@@ -179,6 +183,7 @@ public class SaleOrderFragment extends Fragment {
         binding = FragmentSaleOrderBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+
         rvOrders = binding.rvSalesOrders;
         tvDraft = binding.textView35;
         tvProgress = binding.textView37;
@@ -190,6 +195,31 @@ public class SaleOrderFragment extends Fragment {
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
+
+        rgSort = dialog.findViewById(R.id.rgSort);
+        rgFilter = dialog.findViewById(R.id.rgFilter);
+
+        mRefresh = binding.swiperefresh;
+
+        mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                connectSF();
+                getView().findViewById(R.id.progressBar7).setVisibility(View.VISIBLE);
+                getView().findViewById(R.id.rvSalesOrders).setVisibility(View.INVISIBLE);
+                ((ImageButton)getView().findViewById(R.id.imageButton3)).setImageResource(R.drawable.dots);
+
+                rgFilter.clearCheck();
+                rgSort.clearCheck();
+                dialog.findViewById(R.id.etFilterName).setVisibility(View.GONE);
+                dialog.findViewById(R.id.etFilterId).setVisibility(View.GONE);
+
+                ((EditText)dialog.findViewById(R.id.etFilterName)).setText("");
+                ((EditText)dialog.findViewById(R.id.etFilterId)).setText("");
+                selectedSpin[0] = 0;
+                mRefresh.setRefreshing(false);
+            }
+        });
 
         rvOrders.setHasFixedSize(true);
         rvOrders.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -214,8 +244,7 @@ public class SaleOrderFragment extends Fragment {
     void showDialog(){
         final int[] selectedTab = {1};
 
-        RadioGroup rgSort = dialog.findViewById(R.id.rgSort);
-        RadioGroup rgFilter = dialog.findViewById(R.id.rgFilter);
+
 
         spin = (Spinner) dialog.findViewById(R.id.spinner);
 

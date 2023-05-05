@@ -273,6 +273,10 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
             }
         }
 
+        for (int i = 0; i < thisCharges.size(); i++) {
+            Log.d("Showing Charges", changedPrice[0] + " : "+thisCharges.get(i).chargeName + " : "+ thisCharges.get(i).chargeValue);
+        }
+
         final int[] qtyToAdd = {selectedProduct.qty};
         double finalFloatingCharges = floatingCharges;
         double finalFloatingDisc = floatingDisc;
@@ -282,7 +286,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
             @Override
             public void onClick(View view) {
                 if (qtyToAdd[0] >1) qtyToAdd[0]--;
-                  ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd[0] +"");
+                ((TextView)dialog.findViewById(R.id.tvQty2)).setText(qtyToAdd[0] +"");
 //                ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd[0] *changedPrice[0])+"");
 //                ((TextView)dialog.findViewById(R.id.textView71)).setText(round(qtyToAdd[0] *changedCharge[0])+"");
 //                ((TextView)dialog.findViewById(R.id.textView72)).setText(round(qtyToAdd[0] *changedDisc[0])+"");
@@ -308,6 +312,10 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
         ((EditText)dialog.findViewById(R.id.editText)).setText(round(selectedProduct.salesPrice,2)+"");
         ((TextView)dialog.findViewById(R.id.textView52)).setText(round(qtyToAdd[0] *selectedProduct.salesPrice,2)+"");
 
+        dialog.findViewById(R.id.textView55).setVisibility(View.GONE);
+        dialog.findViewById(R.id.editText2).setVisibility(View.GONE);
+        dialog.findViewById(R.id.textView71).setVisibility(View.GONE);
+
         dialog.findViewById(R.id.textView63).setVisibility(View.GONE);
         dialog.findViewById(R.id.editText3).setVisibility(View.GONE);
         dialog.findViewById(R.id.textView72).setVisibility(View.GONE);
@@ -330,13 +338,17 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                 case 0:
                     ((TextView)dialog.findViewById(R.id.textView55)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
                     ((EditText)dialog.findViewById(R.id.editText2)).setText(round(thisCharges.get(i).chargeValue,2)+"");
-                    double total = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
+                    double total = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).chargeValue : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
                     ((TextView)dialog.findViewById(R.id.textView71)).setText(round(total,2)+"");
+
+                    dialog.findViewById(R.id.textView55).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.editText2).setVisibility(View.VISIBLE);
+                    dialog.findViewById(R.id.textView71).setVisibility(View.VISIBLE);
                     break;
                 case 1:
                     ((TextView)dialog.findViewById(R.id.textView63)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
                     ((EditText)dialog.findViewById(R.id.editText3)).setText(round(thisCharges.get(i).chargeValue,2)+"");
-                    double total1 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
+                    double total1 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).chargeValue : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
                     ((TextView)dialog.findViewById(R.id.textView72)).setText(round(total1,2)+"");
 
                     dialog.findViewById(R.id.textView63).setVisibility(View.VISIBLE);
@@ -347,7 +359,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                 case 2:
                     ((TextView) dialog.findViewById(R.id.textView64)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
                     ((EditText) dialog.findViewById(R.id.editText4)).setText(round(thisCharges.get(i).chargeValue,2)+"");
-                    double total2 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
+                    double total2 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).chargeValue : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
                     ((TextView) dialog.findViewById(R.id.textView73)).setText(round(total2,2) + "");
 
                     dialog.findViewById(R.id.textView64).setVisibility(View.VISIBLE);
@@ -357,7 +369,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                 case 3:
                     ((TextView) dialog.findViewById(R.id.textView65)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
                     ((EditText) dialog.findViewById(R.id.editText5)).setText(round(thisCharges.get(i).chargeValue,2)+"");
-                    double total3 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
+                    double total3 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).chargeValue : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
 
                     ((TextView) dialog.findViewById(R.id.textView74)).setText(round(total3,2) + "");
                     dialog.findViewById(R.id.textView65).setVisibility(View.VISIBLE);
@@ -367,7 +379,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                 case 4:
                     ((TextView) dialog.findViewById(R.id.textView69)).setText(thisCharges.get(i).chargeName+ (thisCharges.get(i).chargeValueType.equals("Fixed") ? "" : " (%)"));
                     ((EditText) dialog.findViewById(R.id.editText8)).setText(round(thisCharges.get(i).chargeValue,2)+"");
-                    double total4 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).amount : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
+                    double total4 = thisCharges.get(i).chargeValueType.equals("Fixed") ? thisCharges.get(i).chargeValue : qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue/100;
 
                     ((TextView) dialog.findViewById(R.id.textView75)).setText(round(total4,2) + "");
 
@@ -518,7 +530,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -526,7 +538,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -539,7 +551,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -547,7 +559,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -559,7 +571,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -567,7 +579,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -579,7 +591,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -587,7 +599,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -599,7 +611,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             if (thisCharges.get(i).chargeType.equals("Tax")) {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedCharge += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedCharge;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingCharge += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -607,7 +619,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             } else {
                                 if (thisCharges.get(i).chargeValueType.equals("Fixed")) {
                                     fixedDiscount += thisCharges.get(i).chargeValue;
-                                    thisCharges.get(i).amount = fixedDiscount;
+                                    thisCharges.get(i).amount = thisCharges.get(i).chargeValue;
                                 } else {
                                     floatingDiscount += thisCharges.get(i).chargeValue;
                                     thisCharges.get(i).amount = qtyToAdd[0] * selectedProduct.salesPrice * thisCharges.get(i).chargeValue / 100;
@@ -722,7 +734,11 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 //                            }
 //                            break;
 //                    }
-//                }
+//                };
+
+                for (int i = 0; i < thisCharges.size(); i++) {
+                    Log.d("Updated Charges", thisCharges.get(i).chargeName + " : "+ thisCharges.get(i).chargeValue);
+                }
 
                 selectedProduct.charges = thisCharges;
                 selectedProduct.salesPrice = cost;
@@ -753,11 +769,11 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                             e.printStackTrace();
                         }
 
-                        ((TextView)findViewById(R.id.tvChargesProduct1)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
-                        ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
-
-
-                        ((TextView)findViewById(R.id.tvTotalCostProduct1)).setText(round(selectedProduct.total,2) +"");
+//                        ((TextView)findViewById(R.id.tvChargesProduct1)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
+//                        ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
+//
+//
+//                        ((TextView)findViewById(R.id.tvTotalCostProduct1)).setText(round(selectedProduct.total,2) +"");
 
                         break;
                     case 1:
@@ -770,10 +786,10 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
-                        ((TextView)findViewById(R.id.tvChargesProduct2)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
-                        ((TextView)findViewById(R.id.tvDiscountProduct2)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
-
-                        ((TextView)findViewById(R.id.tvTotalCostProduct2)).setText(round(selectedProduct.total,2) +"");
+//                        ((TextView)findViewById(R.id.tvChargesProduct2)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
+//                        ((TextView)findViewById(R.id.tvDiscountProduct2)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
+//
+//                        ((TextView)findViewById(R.id.tvTotalCostProduct2)).setText(round(selectedProduct.total,2) +"");
 
                         break;
                     case 2:
@@ -786,9 +802,9 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
-                        ((TextView)findViewById(R.id.tvChargesProduct3)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
-                        ((TextView)findViewById(R.id.tvDiscountProduct3)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
-                        ((TextView)findViewById(R.id.tvTotalCostProduct3)).setText(round(selectedProduct.total,2) +"");
+//                        ((TextView)findViewById(R.id.tvChargesProduct3)).setText(round(fixedCharge + (qtyToAdd[0]*cost*floatingCharge/100),2)+"");
+//                        ((TextView)findViewById(R.id.tvDiscountProduct3)).setText(round(fixedDiscount + (qtyToAdd[0]*cost*floatingDiscount/100),2)+"");
+//                        ((TextView)findViewById(R.id.tvTotalCostProduct3)).setText(round(selectedProduct.total,2) +"");
 
                         break;
                 }
@@ -1712,8 +1728,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     "            \"status\": \"Open\",\n" +
                     "            \"allocatedQuantity\": 0.00,\n" +
                     "            \"salesPrice\": " + cartProducts.get(i).salesPrice + ",\n" +
-                    "            \"discount\": " + cartProducts.get(i).discount + ",\n" +
-                    "            \"tax\": " + cartProducts.get(i).tax + "\n" +
+                    "            \"discount\": "+getProductDiscount(cartProducts.get(i))+",\n" +
+                    "            \"tax\": "+getProductTax(cartProducts.get(i))+"\n" +
                     "        }";
             productPayload += ",";
 
@@ -1727,7 +1743,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                         "            \"ChargeValueType\": \""+cartProducts.get(i).charges.get(j).chargeValueType+"\",\n" +
                         "            \"ChargeType\": \""+cartProducts.get(i).charges.get(j).chargeType+"\",\n" +
                         "            \"TransactionAccount\": \""+cartProducts.get(i).charges.get(j).transactionAccount+"\",\n" +
-                        "            \"Amount\": "+cartProducts.get(i).charges.get(j).amount+"\n" +
+                        "            \"Amount\": "+(cartProducts.get(i).charges.get(j).chargeValueType.equalsIgnoreCase("Fixed") ? cartProducts.get(i).charges.get(j).amount : (cartProducts.get(i).qty * cartProducts.get(i).salesPrice*cartProducts.get(i).charges.get(j).chargeValue)/100)+"\n" +
                         "        }";
                 productChargesPayload += ",";
             }
@@ -1786,20 +1802,55 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
             docPayload += "        {\n" +
                     "            \"Id\": \"" + docCharges.get(i).id + "\",\n" +
                     "\t\t\t\"ChargeMaster\": \"" + docCharges.get(i).masterID + "\",\n" +
-                    "            \"ChargeType\": " + (docCharges.get(i).isApplied ? "\"Tax\"" : "\"Discount\"") + ",\n" +
-                    "            \"Amount\": " + docChargesNew.get(i).amount + ",\n" +
+                    "            \"ChargeType\": " + (docCharges.get(i).isTax ? "\"Tax\"" : "\"Discount\"") + ",\n" +
+                    "            \"Amount\": " + docCharges.get(i).amount + ",\n" +
                     "            \"AmountType\":"+(docCharges.get(i).isFloating ?"\"Floating\"":"\"Fixed\"")+",\n" +
                     "            \"IsApplied\": \""+(boxes[i].isChecked() ? "Yes" : "No")+"\",\n" +
                     "            \"Description\": \"" + docCharges.get(i).name + "\",\n" +
-                    "            \"Value\": " + docChargesNew.get(i).amount + "\n" +
+                    "            \"Value\": "+(docCharges.get(i).isFloating ? (Double.parseDouble(getSubtotal(cartProducts))+Double.parseDouble(getTax(cartProducts))-Double.parseDouble(getDiscount(cartProducts)))* (docCharges.get(i).amount)/100 :docCharges.get(i).amount)+ "\n" +
                     "        }";
             docPayload += ",";
         }
 
-        docPayload = docPayload.substring(0, docPayload.length() - 1);
+        if(docPayload.length() > 0) {
+            docPayload = docPayload.substring(0, docPayload.length() - 1);
+        }
         Log.d("2515", "prepareDocPayload: " + docPayload);
     }
 
+
+    private String getPayload(){
+
+        String payload = "{\n" +
+                "   \n" +
+                "    \"salesOrderTransactionChargeLst\": [\n" +
+                productChargesPayload +
+                "    ],\n" +
+                "    \"salesOrderDocChargeLst\": [\n" +
+                docPayload +
+                "    ],\n" +
+                "    \"salesOrderDetailLst\": [\n" +
+                productPayload +
+                "    ],\n" +
+                " \"salesOrder\": \n" +
+                "        {\n" +
+                "\t\t\t\"Id\": \"" + orderObject.orderID + "\",\n" +
+                "            \"State\": \"draft\",\n" +
+                "            \"Status\": \"Draft\",\n" +
+                "            \"DealerId\": \"" + orderObject.dealerID + "\",\n" +
+                "            \"Narration\": \"" + orderObject.narration + "\",\n" +
+                "            \"BranchId\": \"" + orderObject.branchID + "\",\n" +
+                "            \"CustomerId\": \"" + orderObject.customerID + "\",\n" +
+                "            \"TotalCost\": " + getTotal(Double.parseDouble(getSubtotal(cartProducts)), Double.parseDouble(getTax(cartProducts)), Double.parseDouble(getDiscount(cartProducts)), Double.parseDouble(getAddCost())-Double.parseDouble(getAddDiscount())) + ",\n" +
+                "            \"Subtotal\": " + getSubtotal(cartProducts) + ",\n" +
+                "            \"Tax\": " + getTax(orderObject.products) + ",\n" +
+                "            \"Discount\": " + getDiscount(orderObject.products) + ",\n" +
+                "            \"AdditionalChargeApplied\": " + getAddCost() + ",\n" +
+                "            \"AdditionalDiscountApplied\": "+getAddDiscount()+"\n" +
+                "        }\n" +
+                "}";
+        return payload;
+    }
 
     private void submitPatch(String orderID) {
         String payload = "{\n" +
@@ -1927,8 +1978,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     ((TextView) findViewById(R.id.tvUOMProduct1)).setText(uom);
                     ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
                     ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + round(salesPrice[0],2));
-                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
-                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
+                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                     ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + round(total[0],2) + "");
 
                     if (true) {
@@ -1945,8 +1996,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                                     total[0] = (qty[0] * (salesPrice[0] + (salesPrice[0]*finalFloatingCharges/100) - (salesPrice[0]*finalFloatingDisc/100))) + finalFixedCharges - finalFixedDisc;
                                     ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                     ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + (round(total[0],2)) + "");
 
                                     for (int j = 0; j < cartProducts.size(); j++) {
@@ -1979,8 +2030,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                 ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + (round(total[0],2)) + "");
 
                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -2041,8 +2092,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     ((TextView) findViewById(R.id.tvUOMProduct2)).setText(uom);
                     ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
                     ((TextView) findViewById(R.id.tvSalesPriceProduct2)).setText("" + round(salesPrice[0],2) + "");
-                    ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
-                    ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
+                    ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                    ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                     ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + round(total[0],2) + "");
 
 
@@ -2062,8 +2113,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                     ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                    ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                    ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                     ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + (round(total[0],2)) + "");
 
                                     for (int j = 0; j < cartProducts.size(); j++) {
@@ -2095,8 +2146,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                 ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + (round(total[0],2)) + "");
 
                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -2158,8 +2209,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     ((TextView) findViewById(R.id.tvUOMProduct3)).setText(uom);
                     ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
                     ((TextView) findViewById(R.id.tvSalesPriceProduct3)).setText("" + round(salesPrice[0],2) + "");
-                    ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
-                    ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
+                    ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                    ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                     ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + round(total[0],2) + "");
 
                     if (true) {
@@ -2177,8 +2228,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                     ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                    ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                    ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                     ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + (round(total[0],2)) + "");
 
                                     for (int j = 0; j < cartProducts.size(); j++) {
@@ -2210,8 +2261,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                 ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + (round(total[0],2)) + "");
 
                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -2629,8 +2680,6 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
         double cost = 0;
         for (int i = 0; i < products.size(); i++) {
 
-
-
             for (int j = 0; j < products.get(i).charges.size(); j++) {
                 double fixedDisc = 0.0;
                 double floatingDisc = 0.0;
@@ -2650,8 +2699,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
         double cost = 0;
         for (int i = 0; i < docCharges.size(); i++) {
             View[] views = {findViewById(R.id.checkBox), findViewById(R.id.checkBox3), findViewById(R.id.checkBox4), findViewById(R.id.checkBox5), findViewById(R.id.checkBox6)};
-            if (((CheckBox)views[i]).isChecked() && i < 2) {
-                cost += docCharges.get(i).amount;
+            if (((CheckBox)views[i]).isChecked() && !docCharges.get(i).isTax) {
+                cost += docCharges.get(i).isFloating ? (Double.parseDouble(getSubtotal(cartProducts))+Double.parseDouble(getTax(cartProducts))-Double.parseDouble(getDiscount(cartProducts)))* (docCharges.get(i).amount)/100 : docCharges.get(i).amount;
             }
         }
         return round(cost, 2);
@@ -2662,11 +2711,46 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
         View[] views = {findViewById(R.id.checkBox), findViewById(R.id.checkBox3), findViewById(R.id.checkBox4), findViewById(R.id.checkBox5), findViewById(R.id.checkBox6)};
 
         for (int i = 0; i < docCharges.size(); i++) {
-            if (((CheckBox)views[i]).isChecked() && i > 1) {
-                cost += docCharges.get(i).amount;
+            if(((CheckBox)views[i]).isChecked() && docCharges.get(i).isTax) {
+                cost += docCharges.get(i).isFloating ? (Double.parseDouble(getSubtotal(cartProducts))+Double.parseDouble(getTax(cartProducts))-Double.parseDouble(getDiscount(cartProducts)))* (docCharges.get(i).amount)/100 : docCharges.get(i).amount;
+
+                Log.d("2512", "getAddCost: Adding"+ docCharges.get(i).amount);
             }
         }
         return round(cost, 2);
+    }
+
+    private double getProductDiscount(CartProduct products) {
+        double cost = 0;
+        for (int j = 0; j < products.charges.size(); j++) {
+            double fixedDisc = 0.0;
+            double floatingDisc = 0.0;
+            if(!products.charges.get(j).chargeType.equals("Tax")){
+                if(products.charges.get(j).chargeValueType.equals("Fixed")){
+                    fixedDisc += products.charges.get(j).chargeValue;
+                } else floatingDisc += products.charges.get(j).chargeValue;
+            }
+            cost += (products.qty*products.salesPrice* floatingDisc/100) + fixedDisc;
+        }
+        //disc = cost;
+        return Double.parseDouble(round(cost,2));
+    }
+
+    private double getProductTax(CartProduct products) {
+        double cost = 0;
+        for (int j = 0; j < products.charges.size(); j++) {
+            double fixedDisc = 0.0;
+            double floatingDisc = 0.0;
+            if(products.charges.get(j).chargeType.equals("Tax")){
+                if(products.charges.get(j).chargeValueType.equals("Fixed")){
+                    fixedDisc += products.charges.get(j).chargeValue;
+                } else floatingDisc += products.charges.get(j).chargeValue;
+            }
+            cost += (products.qty*products.salesPrice* floatingDisc/100) + fixedDisc;
+        }
+
+        //disc = cost;
+        return Double.parseDouble(round(cost,2));
     }
 
     public static String round(double value, int places) {
@@ -2711,7 +2795,7 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     public void run() {
                         try {
                             //listAdapter.clear();
-                            Log.d("2516", "Result :" + result.toString());
+                            Log.d("Checkbox", "Result :" + result.toString());
 
                             JSONArray record = result.asJSONObject().getJSONArray("records");
                             for (int i = 0; i < record.length(); i++) {
@@ -2723,11 +2807,13 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                                 String type =  charge.getString("AmountType__c");
                                 String disc1 =  charge.getString("ChargeType__c");
                                 double amount = type.equals("Fixed") ? charge.getDouble("Amount__c") : (Double.parseDouble(getSubtotal(cartProducts))+Double.parseDouble(getTax(cartProducts))-Double.parseDouble(getDiscount(cartProducts)))* (charge.getDouble("Amount__c")/100);
-                                DocCharge d = new DocCharge(desc,id, masterid, disc1.equals("Tax"),amount);
+                                DocCharge d = new DocCharge(desc,id, masterid, disc1.equals("Tax"),amount,type.equals("Floating"),disc1.equals("Tax"));
                                 docChargesNew.add(d);
                             }
 
-                            docCharges = docChargesNew;
+//                            docCharges.clear();
+//                            docCharges.addAll(docChargesNew);
+                            //docCharges = docChargesNew;
                             runOnUiThread(new Runnable() {
 
                                 @Override
@@ -2862,11 +2948,16 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
             //Toast.makeText(this,"In Progress...", Toast.LENGTH_SHORT).show();
             Intent i = new Intent(getApplicationContext(), UpdateOrderActivity.class);
 
+            prepareProductPayload();
+            prepareChargesPayload();
+
             orderObject.products = cartProducts;
             orderObject.docCharges = docCharges;
             orderObject.combinedCharges = combinedCharges;
             i.putExtra("order", orderObject);
             i.putExtra("removed", removedProducts);
+            i.putParcelableArrayListExtra("docCharges", docCharges);
+            i.putExtra("payload", getPayload());
             startActivity(i);
 
 //            checkpermissions(this);
@@ -3048,20 +3139,23 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                 String desc = chargesList.getJSONObject(i).getString("Description__c");
                 String id = chargesList.getJSONObject(i).getString("Id");
-                //String type = chargesList.getJSONObject(i).getString("AmountType__c");
+                String type = chargesList.getJSONObject(i).getString("AmountType__c");
                 String masterid = "";
                 if (chargesList.getJSONObject(i).has("ChargeMaster__c")) {
                     masterid = chargesList.getJSONObject(i).getString("ChargeMaster__c");
                 }
                 double val = 0.0;
-                if (chargesList.getJSONObject(i).has("Value__c")) {
-                    val = chargesList.getJSONObject(i).getDouble("Value__c");
+                if (chargesList.getJSONObject(i).has("Amount__c")) {
+                    val = chargesList.getJSONObject(i).getDouble("Amount__c");
                 }
 
+                String ctype = chargesList.getJSONObject(i).getString("ChargeType__c");
                 String isApplied = chargesList.getJSONObject(i).getString("IsApplied__c");
 
-                DocCharge docCharge = new DocCharge(desc, id, masterid, isApplied.matches("Yes") ? true : false, val);//, type.matches("Floating") ? true : false);
+                DocCharge docCharge = new DocCharge(desc, id, masterid, isApplied.equalsIgnoreCase("Yes") ? true : false, val,type.equalsIgnoreCase("Floating") ? true : false,ctype.equalsIgnoreCase("Tax") ? true : false);//, type.matches("Floating") ? true : false);
                 docCharges.add(docCharge);
+
+                Log.d("Checkbox", "Adding Checkbox: "+docCharge.name + " : "+docCharge.amount + " : "+ docCharge.isApplied);
 
                 if (chargesList.getJSONObject(i).getString("IsApplied__c").equals("Yes"))
                     chargeListText += desc + " : " + val + "\n";
@@ -3075,7 +3169,9 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 //                });
             }
 
-            docChargesNew = docCharges;
+//            docChargesNew.clear();
+//            docChargesNew.addAll(docCharges);
+            //docChargesNew = docCharges;
 
             if (chargeListText.length() > 5)
                 chargeListText = chargeListText.substring(0, chargeListText.length() - 3);
@@ -3142,6 +3238,13 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
             Log.d("2515", "fetchOrderDetails: "+cartProducts.size());
             orderObject = new OrderObject(orderName, orderID, dealer, dealerID, branch, branchID, customer, customerID, state, narration, cartProducts, docCharges);
 
+//            setCharges();
+//            try {
+//                getChargeList();
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -3205,8 +3308,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                                 ((TextView) findViewById(R.id.tvUOMProduct1)).setText(uom);
                                 ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
                                 ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + round(salesPrice[0],2));
-                                ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round(tax1[0],2) + "");
-                                ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round(disc1[0],2) + "");
+                                ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + round(total[0],2) + "");
 
                                 if (canEdit) {
@@ -3223,8 +3326,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                                 ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                                ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                                ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                                 ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + (round(total[0], 2)) + "");
 
                                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -3256,8 +3359,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                             ((TextView) findViewById(R.id.tvQty)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                            ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                            ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                             ((TextView) findViewById(R.id.tvTotalCostProduct1)).setText("" + (round(total[0], 2)) + "");
 
                                             for (int j = 0; j < cartProducts.size(); j++) {
@@ -3317,8 +3420,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                                 ((TextView) findViewById(R.id.tvUOMProduct2)).setText(uom);
                                 ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
                                 ((TextView) findViewById(R.id.tvSalesPriceProduct2)).setText("" + round(salesPrice[0],2) + "");
-                                ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round(tax1[0],2) + "");
-                                ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round(disc1[0],2) + "");
+                                ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + round(total[0],2) + "");
 
 
@@ -3338,8 +3441,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                                 ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                                ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                                ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                                 ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + (round(total[0], 2)) + "");
 
                                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -3371,8 +3474,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                             ((TextView) findViewById(R.id.tvQty2)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                            ((TextView) findViewById(R.id.tvChargesProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                            ((TextView) findViewById(R.id.tvDiscountProduct2)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                             ((TextView) findViewById(R.id.tvTotalCostProduct2)).setText("" + (round(total[0], 2)) + "");
 
                                             for (int j = 0; j < cartProducts.size(); j++) {
@@ -3434,8 +3537,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                                 ((TextView) findViewById(R.id.tvUOMProduct3)).setText(uom);
                                 ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
                                 ((TextView) findViewById(R.id.tvSalesPriceProduct3)).setText("" + round(salesPrice[0],2) + "");
-                                ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round(tax1[0],2) + "");
-                                ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round(disc1[0],2) + "");
+                                ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                 ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + round(total[0],2) + "");
 
                                 if (canEdit) {
@@ -3453,8 +3556,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                                 ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
 //                                    ((TextView) findViewById(R.id.tvSalesPriceProduct1)).setText("" + (salesPrice[0]));
-//                                    ((TextView) findViewById(R.id.tvChargesProduct1)).setText("" + (tax1[0]) + "");
-//                                    ((TextView) findViewById(R.id.tvDiscountProduct1)).setText("" +  (disc1[0]) + "");
+                                                ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                                ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                                 ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + (round(total[0], 2)) + "");
 
                                                 for (int j = 0; j < cartProducts.size(); j++) {
@@ -3486,8 +3589,8 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
 
                                             ((TextView) findViewById(R.id.tvQty3)).setText(qty[0] + "");
 //                                ((TextView)findViewById(R.id.tvSalesPriceProduct1)).setText(""+(salesPrice[0]));
-//                                ((TextView)findViewById(R.id.tvChargesProduct1)).setText(""+(tax1[0])+"");
-//                                ((TextView)findViewById(R.id.tvDiscountProduct1)).setText(""+(disc1[0])+"");
+                                            ((TextView) findViewById(R.id.tvChargesProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingCharges/100)+finalFixedCharges,2) + "");
+                                            ((TextView) findViewById(R.id.tvDiscountProduct3)).setText("" + round((qty[0]*salesPrice[0]*finalFloatingDisc/100)+ finalFixedDisc,2) + "");
                                             ((TextView) findViewById(R.id.tvTotalCostProduct3)).setText("" + (round(total[0], 2)) + "");
 
                                             for (int j = 0; j < cartProducts.size(); j++) {
@@ -3546,11 +3649,13 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                     }
 
                     for (int i = 0; i < docCharges.size(); i++) {
-
+                        Log.d("Checkbox", "Setting Up Checkboxes: ");
                         String name = docCharges.get(i).name;
-                        double amount = docCharges.get(i).amount;
+                        //double amount = docCharges.get(i).amount;
+                        double amount = docCharges.get(i).isFloating ?  (Double.parseDouble(getSubtotal(cartProducts))+ Double.parseDouble(getTax(cartProducts))- Double.parseDouble(getDiscount(cartProducts)))* (docCharges.get(i).amount/100) : docCharges.get(i).amount;
                         boolean isApplied = docCharges.get(i).isApplied;
 
+                        Log.d("Checkbox", "run: "+docCharges.get(i).name + " is applied: " +docCharges.get(i).isApplied);
                         ConstraintLayout constraintLayout = findViewById(R.id.cvParent);
                         ConstraintSet constraintSet = new ConstraintSet();
                         constraintSet.clone(constraintLayout);
@@ -3689,11 +3794,23 @@ public class SalesOrderDetails extends AppCompatActivity implements CompoundButt
                 }
             });
 
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        getChargeList();
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+
 
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("2514", "checkSalesOrderQuery: " + e.toString());
         } catch (JSONException e) {
+            Log.d("2514", "checkSalesOrderQuery: " + e.toString());
             e.printStackTrace();
         }
     }
